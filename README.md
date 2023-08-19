@@ -1,6 +1,10 @@
-# Installation
+# Documentation
+
+- --
 
 ## Download K8s
+
+- --
 
 1. Download **Api-Server**
 
@@ -58,19 +62,24 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
 
 ## Running K8s
 
+- --
+
 ### Running etcd
+
+- --
+
+
 
 1.Run  **etcd**
 
 ```shell
-cd etcd-v3.5.9-linux-amd64
-./etcd
+./etcd-v3.5.9-linux-amd64/etcd etcd-v3.5.9-linux-amd64
 ```
 
 2. Validate **etcd**
 
 ```shell
-./etcdctl member list -w table
+./etcd-v3.5.9-linux-amd64/etcdctl member list -w table
 ```
 
 - **Output** - etcd running local on port 2379
@@ -99,7 +108,9 @@ cd etcd-v3.5.9-linux-amd64
 +----------------+------------------+---------+---------+-----------+------------+-----------+------------+--------------------+--------+
 ```
 
-### Running api-server
+### Running kube-apiserver
+
+- --
 
 1. Run kube-apiserver
 
@@ -125,4 +136,77 @@ cd etcd-v3.5.9-linux-amd64
 ./etcd-v3.5.9-linux-amd64/etcdctl get / --prefix --keys-only | grep deployments
 ```
 
+### Use kubectl "_frontend_"
 
+- --
+
+1. get pods
+
+```shell
+./kubectl get po
+```
+
+2. get namespaces
+
+```shell
+./kubectl get namespaces
+```
+
+3. create deployments
+
+```shell
+./kubectl create deployment --image=spring spring-1
+```
+
+4. get replicaset
+
+```shell
+./kubectl get rs
+```
+
+5. get deployment
+
+```shell
+./kubectl get deployments
+```
+
+- **output**
+
+
+     - deployment not ready 
+     - image not pulled and deployment 
+     - controller manager is down
+
+```text
+
+```
+
+### Running Controller-Manager
+
+- --
+
+    controller manager responsible to create replcaset for deployments
+
+1. run controller-manager
+
+```shell
+./kube-controller-manager -master=http://localhost:8080
+```
+
+2. validate replicaset creation
+
+```shell
+./kubectl get rs 
+```
+3. descripte recast to see why diserd is 1 and current is 0 
+
+- output
+
+```text
+
+```
+
+
+### Running Controller-Manager
+
+- --

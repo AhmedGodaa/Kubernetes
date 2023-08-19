@@ -49,4 +49,7 @@ chmod +x kubectl
 ```shell
 curl -LO "https://github.com/etcd-io/etcd/releases/download/v3.5.9/etcd-v3.5.9-linux-amd64.tar.gz"
 ```
+* **After download all files should be executable**
+
+![image](https://github.com/AhmedGodaa/k8s/assets/73083104/88867d6d-16e8-460d-82a2-09e15aef3dc5)
 

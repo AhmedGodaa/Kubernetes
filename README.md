@@ -2,44 +2,51 @@
 
 ## Download K8s
 
-1. Install Api-Server
+1. Download **Api-Server**
 
 ```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/arm64/kube-apiserver"
+curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-apiserver"
+chmod +x kube-apiserver
 ```
 
-2. Install Controller-Manager
+2. Download **Controller-Manager**
 
 ```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/arm64/kube-controller-manager"
+curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-controller-manager"
+chmod +x kube-controller-manager
 ```
 
-3. Install Scheduler
+3. Download **Scheduler**
 
 ```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/arm64/kube-scheduler"
+curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-scheduler"
+chmod +x kube-scheduler
 ```
 
-4. Install Kube-Proxy
+4. Download **Kube-Proxy**
 
 ```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/arm64/kube-proxy"
+curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-proxy"
+chmod +x kube-proxy
 ```
 
-5. Install Kubelet
+5. Download **Kubelet**
 
 ```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/arm64/kubelet"
+curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kubelet"
+chmod +x kubelet
 ```
 
-6. Install Kubectl
+6. Download **Kubectl**
 
 ```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/arm64/kubectl"
+curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kubectl"
+chmod +x kubectl
 ```
 
-7. Install etcd
+7. Download **etcd**
 
 ```shell
-     curl -LO "https://github.com/etcd-io/etcd/releases/download/v3.5.9/etcd-v3.5.9-linux-arm64.tar.gz"
+curl -LO "https://github.com/etcd-io/etcd/releases/download/v3.5.9/etcd-v3.5.9-linux-amd64.tar.gz"
 ```
+

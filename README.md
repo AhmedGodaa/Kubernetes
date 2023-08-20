@@ -1,54 +1,50 @@
 # Documentation
 
-- --
-
 ## Download K8s
 
-- --
-
-1. Download **Api-Server**
+- Download **Api-Server**
 
 ```shell
 curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-apiserver"
 chmod +x kube-apiserver
 ```
 
-2. Download **Controller-Manager**
+- Download **Controller-Manager**
 
 ```shell
 curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-controller-manager"
 chmod +x kube-controller-manager
 ```
 
-3. Download **Scheduler**
+- Download **Scheduler**
 
 ```shell
 curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-scheduler"
 chmod +x kube-scheduler
 ```
 
-4. Download **Kube-Proxy**
+- Download **Kube-Proxy**
 
 ```shell
 curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-proxy"
 chmod +x kube-proxy
 ```
 
-5. Download **Kubelet**
+- Download **Kubelet**
 
 ```shell
 curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kubelet"
 chmod +x kubelet
 ```
 
-6. Download **Kubectl**
+- Download **Kubectl**
 
 ```shell
 curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kubectl"
 chmod +x kubectl
 ```
 
-7. Download **etcd**
+- Download **etcd**
 
 ```shell
 curl -LO "https://github.com/etcd-io/etcd/releases/download/v3.5.9/etcd-v3.5.9-linux-amd64.tar.gz"
@@ -62,27 +58,19 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
 
 ## Running K8s
 
-- --
-
 ### Running etcd
 
-- --
-
-
-
-1.Run  **etcd**
+- Run  **etcd**
 
 ```shell
-./etcd-v3.5.9-linux-amd64/etcd etcd-v3.5.9-linux-amd64
+./etcd-v3.5.9-linux-amd64/etcd 
 ```
 
-2. Validate **etcd**
+- Validate **etcd**
 
 ```shell
 ./etcd-v3.5.9-linux-amd64/etcdctl member list -w table
 ```
-
-- **Output** - etcd running local on port 2379
 
 ```text
 +------------------+---------+---------+-----------------------+-----------------------+------------+
@@ -92,13 +80,11 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
 +------------------+---------+---------+-----------------------+-----------------------+------------+
 ```
 
-3. check tables headlth
+- check tables health
 
 ```shell
 ./etcd-v3.5.9-linux-amd64/etcdctl endpoint status -w table
 ```
-
-- **output**
 
 ```text
 +----------------+------------------+---------+---------+-----------+------------+-----------+------------+--------------------+--------+
@@ -110,27 +96,25 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
 
 ### Running kube-apiserver
 
-- --
-
-1. Run kube-apiserver
+- Run kube-apiserver
 
 ```shell
 ./kube-apiserver --etcd-servers=http://localhost:2379
 ```
 
-2. validate stored values after running apiserver
+- validate stored values after running apiserver
 
 ```shell
 ./etcd-v3.5.9-linux-amd64/etcdctl get / --prefix --keys-only
 ```
 
-3. get stored namespaces
+- get stored namespaces
 
 ```shell
 ./etcd-v3.5.9-linux-amd64/etcdctl get / --prefix --keys-only | grep namespaces
 ```
 
-4. get stored deployments
+- get stored deployments
 
 ```shell
 ./etcd-v3.5.9-linux-amd64/etcdctl get / --prefix --keys-only | grep deployments
@@ -138,40 +122,39 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
 
 ### Use kubectl "_frontend_"
 
-- --
-
 1. get pods
 
 ```shell
 ./kubectl get po
 ```
 
-2. get namespaces
+- get namespaces
 
 ```shell
 ./kubectl get namespaces
 ```
 
-3. create deployments
+- create deployments
 
 ```shell
 ./kubectl create deployment --image=spring spring-1
 ```
 
-4. get replicaset
+- get replicaset
 
 ```shell
 ./kubectl get rs
 ```
 
-5. get deployment
+- Get deployment
 
 ```shell
 ./kubectl get deployments
 ```
 
-- **output**
+- **output**.
 
+- --
 
      - deployment not ready 
      - image not pulled and deployment 
@@ -187,26 +170,178 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
 
     controller manager responsible to create replcaset for deployments
 
-1. run controller-manager
+- Run controller-manager
 
 ```shell
 ./kube-controller-manager -master=http://localhost:8080
 ```
 
-2. validate replicaset creation
+- Validate replicaset creation
 
 ```shell
 ./kubectl get rs 
 ```
-3. descripte recast to see why diserd is 1 and current is 0 
 
-- output
+- Describe recast to see why expected is 1 and current is 0.
 
 ```text
 
 ```
 
-
 ### Running Controller-Manager
 
-- --
+## MiniKube
+
+    Single Node Cluster
+
+- Install Minikube
+
+```install
+minikube start --driver=docker
+```
+
+- Start Minikube
+
+```shell
+minikube start
+```
+
+- Check Running
+
+```shell
+minikube status
+```
+
+```text
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+```
+
+- Validate minikube is ready
+
+```shell
+kubectl get nodes
+```
+
+```text
+NAME       STATUS   ROLES           AGE    VERSION
+minikube   Ready    control-plane   118m   v1.25.3
+```
+
+- Check k8s service deployment
+
+```shell
+kubectl get svc
+```
+
+```text
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   129m
+```
+
+- services that minikube support
+
+```shell
+minikube addons list
+```
+
+```text
+|-----------------------------|----------|--------------|--------------------------------|
+|         ADDON NAME          | PROFILE  |    STATUS    |           MAINTAINER           |
+|-----------------------------|----------|--------------|--------------------------------|
+| ambassador                  | minikube | disabled     | 3rd party (Ambassador)         |
+| auto-pause                  | minikube | disabled     | Google                         |
+| cloud-spanner               | minikube | disabled     | Google                         |
+| csi-hostpath-driver         | minikube | disabled     | Kubernetes                     |
+| dashboard                   | minikube | disabled     | Kubernetes                     |
+| default-storageclass        | minikube | enabled ✅   | Kubernetes                     |
+| efk                         | minikube | disabled     | 3rd party (Elastic)            |
+| freshpod                    | minikube | disabled     | Google                         |
+| gcp-auth                    | minikube | disabled     | Google                         |
+| gvisor                      | minikube | disabled     | Google                         |
+| headlamp                    | minikube | disabled     | 3rd party (kinvolk.io)         |
+| helm-tiller                 | minikube | disabled     | 3rd party (Helm)               |
+| inaccel                     | minikube | disabled     | 3rd party (InAccel             |
+|                             |          |              | [info@inaccel.com])            |
+| ingress                     | minikube | disabled     | Kubernetes                     |
+| ingress-dns                 | minikube | disabled     | Google                         |
+| istio                       | minikube | disabled     | 3rd party (Istio)              |
+| istio-provisioner           | minikube | disabled     | 3rd party (Istio)              |
+| kong                        | minikube | disabled     | 3rd party (Kong HQ)            |
+| kubevirt                    | minikube | disabled     | 3rd party (KubeVirt)           |
+| logviewer                   | minikube | disabled     | 3rd party (unknown)            |
+| metallb                     | minikube | disabled     | 3rd party (MetalLB)            |
+| metrics-server              | minikube | disabled     | Kubernetes                     |
+| nvidia-driver-installer     | minikube | disabled     | Google                         |
+| nvidia-gpu-device-plugin    | minikube | disabled     | 3rd party (Nvidia)             |
+| olm                         | minikube | disabled     | 3rd party (Operator Framework) |
+| pod-security-policy         | minikube | disabled     | 3rd party (unknown)            |
+| portainer                   | minikube | disabled     | 3rd party (Portainer.io)       |
+| registry                    | minikube | disabled     | Google                         |
+| registry-aliases            | minikube | disabled     | 3rd party (unknown)            |
+| registry-creds              | minikube | disabled     | 3rd party (UPMC Enterprises)   |
+| storage-provisioner         | minikube | enabled ✅   | Google                         |
+| storage-provisioner-gluster | minikube | disabled     | 3rd party (Gluster)            |
+| volumesnapshots             | minikube | disabled     | Kubernetes                     |
+|-----------------------------|----------|--------------|--------------------------------|
+```
+
+- Access minikube services
+
+```shell
+minikube dashboard
+```
+
+- Stop minikube
+
+```shell
+minikube stop
+```
+
+- Delete minikube cluster
+
+```shell
+minikube delete
+```
+
+## Namespaces
+
+    Divide cluster to virtual clusters  FE - BE - DB
+    Set Permissions:
+        BE only have access to DB cluster.
+        Payment Cluster fully isolated.
+        Device Cluster By environment. DEV - STAG - PROD
+        DEV: full access 
+        STG: can ssh pods troubleshoot application
+        PROD: Read Access Check if application running
+        PROD: Jenkins - Actions - Authorized deployment pipline
+
+    K8s consists of multiple nodes Master - Worker
+    WR nodes expose CPU and Memory resources
+    Container demand the resources from WR nodes
+
+    K8s check available resources in each node 
+    K8s assign new pods based on available resources
+
+    Each deployment can have his own namespace 
+    
+    Cluster have coast:
+        Each cluster: at least have 6 node
+            Have at least 3 master node. for high availability.
+            Have at least 3 external etcd cluster.
+            Have system components need to be deployed: promenades - alert-manager - ingress-controller.
+            Upgrade All Clusters - Manage Certificates - Adminstration.
+    Needed:
+        Maximum nodes in the cluster. 
+            Create new cluster. - scale horizontally.
+    
+    
+            
+            
+            
+    
+        

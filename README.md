@@ -308,6 +308,109 @@ minikube stop
 minikube delete
 ```
 
+## Kind
+
+    Multi-Node Cluster
+
+- Download kind
+
+```shell
+curl.exe -Lo kind-windows-amd64.exe --ssl-no-revoke https://kind.sigs.k8s.io/dl/v0.20.0/kind-windows-amd64
+Move-Item .\kind-windows-amd64 c:\k8s\kind.exe
+```
+
+- Create Cluster
+
+```shell 
+# This will create single node cluster
+./kind create cluster --name kind-cluster
+```
+
+- Create with configuration
+
+```shell    
+# This will create cluster with 4 nodes 2 master-nodes 2 worker-nodes
+./kind create cluster --name multi-node-cluster --config kind-config.yml
+```
+
+```shell
+# Login to the multi-node cluster
+kubectl config use-context multi-node-cluster
+```
+
+```shell
+# Get the 4 nodes that created in the cluster 
+kubectl get nodes
+``` 
+
+- Get cluster info
+
+```shell
+kubectl cluster-info --context kind-kind-cluster
+```
+
+```text
+Kubernetes control plane is running at https://127.0.0.1:65458
+CoreDNS is running at https://127.0.0.1:65458/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+```
+
+- Get clusters
+
+```shell
+./kind get clusters
+```
+
+- Delete cluster
+
+```shell
+./kind delete cluster-name
+```
+
+## Kube Config File
+
+    kubectl use to authenticate and login to cluster.
+
+- Get clusters
+
+```shell
+kubectl config get-contexts
+```
+
+```text
+CURRENT   NAME             CLUSTER          AUTHINFO         NAMESPACE
+          docker-desktop   docker-desktop   docker-desktop
+*         kind-kind        kind-kind        kind-kind
+          minikube         minikube         minikube         default
+```
+
+- Switch between clusters contexts
+
+```shell
+kubectl config use-context minikube
+```
+
+```shell
+# Now any command will run on cluster -  minikube 
+kubectl get nodes 
+kubectl get pods  
+```
+
+- get kube config file directory
+
+```shell
+ls ~/.kube/config
+```
+
+```text
+Directory: C:\Users\ahmedgodaa\.kube
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/21/2023   9:24 PM          11926 config
+
+```
+
 ## Namespaces
 
     Divide cluster to virtual clusters  FE - BE - DB
@@ -338,10 +441,3 @@ minikube delete
     Needed:
         Maximum nodes in the cluster. 
             Create new cluster. - scale horizontally.
-    
-    
-            
-            
-            
-    
-        

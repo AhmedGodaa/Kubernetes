@@ -1,0 +1,9 @@
+# nonk8s
+# three node cluster
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-pane
+  - role: control-pane
+  - role: worker
+  - role: worker

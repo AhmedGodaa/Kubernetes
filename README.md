@@ -1,6 +1,6 @@
 # Documentation
 
-## Download K8s - Legacy
+## Download K8s
 
 - Download **Api-Server**
 
@@ -160,6 +160,9 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
      - image not pulled and deployment 
      - controller manager is down
 
+```text
+
+```
 
 ### Running Controller-Manager
 
@@ -323,7 +326,7 @@ Move-Item .\kind-windows-amd64 c:\k8s\kind.exe
 ./kind create cluster --name kind-cluster
 ```
 
-- Create multi-node cluster
+- Create with configuration
 
 ```shell    
 # This will create cluster with 4 nodes 2 master-nodes 2 worker-nodes
@@ -360,7 +363,7 @@ CoreDNS is running at https://127.0.0.1:65458/api/v1/namespaces/kube-system/serv
 - Delete cluster
 
 ```shell
-./kind delete cluster -n cluster-name
+./kind delete cluster-name
 ```
 
 ## Kube Config File

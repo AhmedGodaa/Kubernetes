@@ -1,12 +1,9 @@
 name: Build and push Docker images
 
-on: 
-  workflow_dispatch:
-    inputs:
-      version:
-        description: Image Version
-        default: v1.0.0
-        required: true
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build-and-push:
@@ -26,12 +23,15 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          
+
+      - name: Determine current version
+        id: version
+        run: echo "::set-output name=version::$(git describe --tags)"
+
       - name: Build and Push Cart Service Docker image
         run: |
           cd k8s-test
           chmod +x gradlew
           ./gradlew build
-          docker build -t ahmedgodaa/k8s-test:${{ github.event.inputs.version }} .
-          docker push ahmedgodaa/k8s-test:${{ github.event.inputs.version }}
-          
+          docker build -t ahmedgodaa/k8s-test:${{ steps.version.outputs.version }} .
+          docker push ahmedgodaa/k8s-test:${{ steps.version.outputs.version }}

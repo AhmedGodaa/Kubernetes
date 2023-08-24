@@ -39,11 +39,26 @@ jobs:
           parts[2]=$((parts[2]+1))
           echo "::set-output name=new_version::${parts[0]}.${parts[1]}.${parts[2]}}"
 
-      - name: Set up JDK 17
-
-      - name: Login to Docker Hub
 
       - name: Build and Push Docker image
         run: |
           docker build -t ahmedgodaa/k8s-test:${{ steps.bump_version.outputs.new_version }} .  
           docker push ahmedgodaa/k8s-test:${{ steps.bump_version.outputs.new_version }}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+

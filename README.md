@@ -1,6 +1,7 @@
 # Documentation
 
-## Download K8s
+## Download K8s 
+legacy version
 
 - Download **Api-Server**
 
@@ -51,10 +52,6 @@ curl -LO "https://github.com/etcd-io/etcd/releases/download/v3.5.9/etcd-v3.5.9-l
 tar -xvf etcd-v3.5.9-linux-arm64.tar.gz
 rm -r etcd-v3.5.9-linux-arm64.tar.gz
 ```
-
-* **After download all files should be executable**
-
-![image](https://github.com/AhmedGodaa/k8s/assets/73083104/88867d6d-16e8-460d-82a2-09e15aef3dc5)
 
 ## Running K8s
 
@@ -182,13 +179,7 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
 ./kubectl get rs 
 ```
 
-- Describe recast to see why expected is 1 and current is 0.
 
-```text
-
-```
-
-### Running Controller-Manager
 
 ## MiniKube
 
@@ -409,6 +400,134 @@ Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
 -a----         8/21/2023   9:24 PM          11926 config
 
+```
+
+## Docker Registry
+
+    Docker registry is a repository to store docker images.
+
+### Public Docker Registry
+
+- docker env required by minikube
+
+```shell
+    minikube docker-env
+```
+
+      $Env:DOCKER_TLS_VERIFY = "1"
+      $Env:DOCKER_HOST = "tcp://127.0.0.1:54613"
+      $Env:DOCKER_CERT_PATH = "C:\Users\EGYPT_LAPTOP\.minikube\certs"
+      $Env:MINIKUBE_ACTIVE_DOCKERD = "minikube"
+      # To point your shell to minikube's docker-daemon, run:
+      # & minikube -p minikube docker-env --shell powershell | Invoke-Expression
+
+- Set System env
+```shell
+$Env:DOCKER_HOST = "tcp://127.0.0.1:54613"
+```
+
+- Validate env saved
+
+```shell
+ echo $Env:DOCKER_HOST
+```
+
+- Rename exist docker image if build on local
+
+```shell
+docker tag k8s-test ahmedgodaa/k8s-test:v1.0.1
+```
+
+```shell
+docker images
+```
+
+```shell
+docker push ahmedgodaa/k8s-test:v1.0.1
+```
+
+- Create **Deployment**
+
+```shell
+kubectl apply -f k8s-test-deploy.yml
+```
+
+- Create **Service**
+
+```shell
+kubectl apply -f k8s-test-service.yml
+```
+
+- Get **IP**
+
+```text
+ Since we expose our service as NodePort
+ We can able to access it using node ip and node port.
+```
+
+```shell
+kubectl get nodes -o wide
+```
+
+- Get Nodes IPs - **Minikube**
+
+```text
+NAME       STATUS   ROLES           AGE     VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION                      CONTAINER-RUNTIME
+minikube   Ready    control-plane   3h37m   v1.25.3   192.168.49.2   <none>        Ubuntu 20.04.5 LTS   5.15.90.4-microsoft-standard-WSL2   docker://20.10.20
+```
+
+- OR
+
+```shell
+minikube ip
+```
+
+- Get Port - **Service Port**
+
+```shell
+kubectl get svc
+```
+
+```text
+k8s-test     NodePort    10.108.198.207   <none>        8080:32485/TCP   8m35s
+kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP          3h41m
+```
+
+- Access Application - **Linux**
+
+```text
+# Access the service using node ip and node port
+http://192.168.49.2:32485
+```
+
+- On **windows**
+
+```shell
+# Service should be exposed by minikube 
+minikube service k8s-test
+```
+
+```text
+|-----------|----------|-------------|---------------------------|
+| NAMESPACE |   NAME   | TARGET PORT |            URL            |
+|-----------|----------|-------------|---------------------------|
+| default   | k8s-test |        8080 | http://192.168.49.2:31089 |
+|-----------|----------|-------------|---------------------------|
+🏃  Starting tunnel for service k8s-test.
+|-----------|----------|-------------|------------------------|
+| NAMESPACE |   NAME   | TARGET PORT |          URL           |
+|-----------|----------|-------------|------------------------|
+| default   | k8s-test |             | http://127.0.0.1:51812 |
+|-----------|----------|-------------|------------------------|
+🎉  Opening service default/k8s-test in default browser...
+❗  Because you are using a Docker driver on windows, the terminal needs to be open to run it.
+```
+
+- Access the service - **Windows**
+
+```text
+# Access the service using tunnel
+http://127.0.0.1:51812
 ```
 
 ## Namespaces

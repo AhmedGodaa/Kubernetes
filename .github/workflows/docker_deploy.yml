@@ -27,10 +27,26 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Cart Service Docker image
+      - name: Pull latest Docker image 
+        run: docker pull ahmedgodaa/k8s-test:latest
+
+      - name: Extract current version
+        id: extract_current_version
+        run: echo "::set-output name=version::$(docker images ahmedgodaa/k8s-test:latest --format '{{.Tag}}')"
+
+      - name: Bump version 
+        id: bump_version
         run: |
-          cd k8s-test
-          chmod +x gradlew
-          ./gradlew build
-          docker build -t ahmedgodaa/k8s-test:${{ github.event.inputs.version }} .
-          docker push ahmedgodaa/k8s-test:${{ github.event.inputs.version }}
+          version=${{ steps.extract_current_version.outputs.version }}
+          parts=( ${version//./ } )
+          parts[2]=$((parts[2]+1))
+          echo "::set-output name=new_version::${parts[0]}.${parts[1]}.${parts[2]}}"
+
+      - name: Set up JDK 17
+
+      - name: Login to Docker Hub
+
+      - name: Build and Push Docker image
+        run: |
+          docker build -t ahmedgodaa/k8s-test:${{ steps.bump_version.outputs.new_version }} .  
+          docker push ahmedgodaa/k8s-test:${{ steps.bump_version.outputs.new_version }}

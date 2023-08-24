@@ -1,12 +1,9 @@
 name: Build and push Docker images
 
-on: 
-  workflow_dispatch:
-    inputs:
-      version:
-        description: Image Version
-        default: v1.0.0
-        required: true
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build-and-push:

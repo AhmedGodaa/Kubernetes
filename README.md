@@ -161,7 +161,7 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
      - controller manager is down
 
 ```text
-
+ 
 ```
 
 ### Running Controller-Manager

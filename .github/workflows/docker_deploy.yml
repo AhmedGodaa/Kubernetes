@@ -25,7 +25,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Pull latest Docker image 
-        run: docker pull ahmedgodaa/k8s-test:latest
+        run: docker pull ahmedgodaa/k8s-test:v1.0.0
 
       - name: Extract current version
         id: extract_current_version

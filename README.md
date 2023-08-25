@@ -11,8 +11,6 @@ curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-apiserver"
 chmod +x kube-apiserver
 ```
 
-[test](https://mage2gen.com/)
-
 - Download **Controller-Manager**
 
 ```shell
@@ -632,17 +630,11 @@ registry   ClusterIP   10.106.212.23   <none>        80/TCP,443/TCP           6m
 1. It uses ClusterIP, So we can't directly access it from outside the cluster
 2. It can be port-forwarded to localhost:5000
 
-```shell
-minikube service --namespace kube-system registry 5000:80        
-````
-
-- **OR**
-
 ```shell 
 kubectl port-forward --namespace kube-system service/registry 5000:80
 ```
 
-- Validate the registry is accessible
+- **Validate** the registry is accessible
 
 ```shell
 curl http://localhost:5000/v2/_catalog
@@ -650,6 +642,85 @@ curl http://localhost:5000/v2/_catalog
 
 ```text
 {"repositories":["k8s-test"]}
+```
+
+## ECS
+
+        AWS Service to manage containers
+        ECS works as minikube or Kind cluster but on the cloud.
+        ECS is a container orchestration service that supports Docker containers and allows you to easily run and scale containerized applications on AWS.
+        ECS eliminates the need for you to install, operate, and scale your own cluster management infrastructure.
+        ECS is a regional service that simplifies running application containers in a highly available manner across multiple Availability Zones within a Region.
+        ECS is a great choice to run containers for several reasons.
+        First, it reduces the management overhead of running containers at scale.
+        Second, it provides security capabilities, such as IAM roles for tasks, that allow you to control access to your containers.
+        Finally, ECS integrates with other AWS services, such as Elastic Load Balancing, Amazon VPC, AWS IAM, and AWS CloudFormation, to provide a complete solution for running a wide range of containerized applications.
+
+### ECS with EC2
+
+```text
+Requires Docker installed on EC2
+Requires ECS Agent installed on EC2.
+```
+
+- **Pros**
+
+```text
+full access to infrastructure.
+```
+
+- **Cons**
+
+```text
+It Requires EC2 instances to run containers on.
+It Requires Docker installed on EC2 instances.
+Manage the Virtual Machines.
+Check enough resources available on EC2 instances.
+```
+
+### ECS with Fargate
+
+```text
+Fargate is a technology that you can use with Amazon ECS to run containers without having to manage servers or clusters of Amazon EC2 instances.
+Fargate is a serverless engine for containers that works with both Amazon Elastic Container Service (ECS) and Amazon Elastic Kubernetes Service (EKS).
+Fargate removes the need to provision and manage servers, lets you specify and pay for resources per application.
+Fargate check how uch CPU and memory your containerized application needs and it will launch the containers for you.
+You don't have to select instance types or manage scaling.
+```
+
+- **Pros**
+
+```text
+Don't pay for control plane.
+Integrate with AWS services.
+CloudWatch for monitoring.
+Elastic Load Balancing for Loadbalancing.
+IAM for security.
+VPC for networking.
+```
+
+## EKS
+
+```text
+EKS make easy to migrate to another cloud provider.
+Amazon Elastic Kubernetes Service (Amazon EKS) is a fully managed Kubernetes service.
+Kubernetes is open-source software that allows you to deploy and manage containerized applications at scale.
+EKS runs Kubernetes control plane instances across multiple Availability Zones to ensure high availability.
+EKS automatically detects and replaces unhealthy control plane instances, and it provides automated version upgrades and patching for them.
+EKS is also integrated with many AWS services to provide scalability and security for your applications.
+```
+
+- **Prose**
+
+```text
+Full access to k8s ecosystem like helm.
+```
+
+- **Cons**
+
+```text
+Pay for the control plane unlike ECS.
+Migration from EKS to another cloud provider is not easy.
 ```
 
 ## Namespaces

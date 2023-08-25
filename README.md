@@ -1,6 +1,7 @@
 # Documentation
 
-## Download K8s 
+## Download K8s
+
 legacy version
 
 - Download **Api-Server**
@@ -9,6 +10,8 @@ legacy version
 curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-apiserver"
 chmod +x kube-apiserver
 ```
+
+[test](https://mage2gen.com/)
 
 - Download **Controller-Manager**
 
@@ -178,8 +181,6 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
 ```shell
 ./kubectl get rs 
 ```
-
-
 
 ## MiniKube
 
@@ -422,6 +423,7 @@ Mode                 LastWriteTime         Length Name
       # & minikube -p minikube docker-env --shell powershell | Invoke-Expression
 
 - Set System env
+
 ```shell
 $Env:DOCKER_HOST = "tcp://127.0.0.1:54613"
 ```
@@ -528,6 +530,126 @@ minikube service k8s-test
 ```text
 # Access the service using tunnel
 http://127.0.0.1:51812
+```
+
+### Public Docker Registry
+
+- Start **Docker Registry Image**
+
+```shell
+docker run -d -p 5000:5000 --restart=always --name private-registry registry:2
+```
+
+- Start **Docker Registry Image Automatically**
+
+```shell
+docker run -d  -p 5000:5000 --restart=always --name registry registry:2
+```
+
+- get docker registry ip
+
+```shell
+docker inspect -f "{{ .NetworkSettings.IPAddress }}" private-registry
+```
+
+```text
+172.17.0.2
+```
+
+- Tag **image**
+
+```shell
+docker tag ahmedgodaa/k8s-test:v1.0.1 localhost:5000/k8s-test:v1.0.1
+```
+
+- Push **image**
+
+```shell
+docker push localhost:5000/k8s-test:v1.0.1
+```
+
+```shell
+docker pull localhost:5000/k8s-test:v1.0.1
+```
+
+- Stop **Docker Registry**
+
+```shell
+docker stop private-registry
+```
+
+- Minikube **Docker Registry**
+
+```shell
+minikube addons enable registry
+```
+
+```text
+* registry is an addon maintained by Google. For any concerns contact minikube on GitHub.
+You can view the list of minikube maintainers at: https://github.com/kubernetes/minikube/blob/master/OWNERS
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                      │
+│    Registry addon with docker driver uses port 58201 please use that instead of default port 5000    │
+│                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────╯
+* For more information see: https://minikube.sigs.k8s.io/docs/drivers/docker
+  - Using image docker.io/registry:2.8.1
+  - Using image gcr.io/google_containers/kube-registry-proxy:0.4
+* Verifying registry addon...
+* The 'registry' addon is enabled
+
+```
+
+#### Access the registry - Manually
+
+```shell
+kubectl get namespaces 
+```
+
+```text
+NAME                   STATUS   AGE
+default                Active   18h
+kube-node-lease        Active   18h
+kube-public            Active   18h
+kube-system            Active   18h
+kubernetes-dashboard   Active   18h
+```
+
+- Get the services on the kube-system virtual cluster namespace
+
+```shell
+kubectl get svc --namespace kube-system
+```
+
+```text
+NAME       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                  AGE
+kube-dns   ClusterIP   10.96.0.10      <none>        53/UDP,53/TCP,9153/TCP   18h
+registry   ClusterIP   10.106.212.23   <none>        80/TCP,443/TCP           6m55s
+```
+
+##### Expose the registry service
+
+1. It uses ClusterIP, So we can't directly access it from outside the cluster
+2. It can be port-forwarded to localhost:5000
+
+```shell
+minikube service --namespace kube-system registry 5000:80        
+````
+
+- **OR**
+
+```shell 
+kubectl port-forward --namespace kube-system service/registry 5000:80
+```
+
+- Validate the registry is accessible
+
+```shell
+curl http://localhost:5000/v2/_catalog
+```
+
+```text
+{"repositories":["k8s-test"]}
 ```
 
 ## Namespaces

@@ -644,6 +644,15 @@ curl http://localhost:5000/v2/_catalog
 {"repositories":["k8s-test"]}
 ```
 
+## ECR
+
+```text
+Repository to store docker images alternative to dockerhub, Nexus.
+
+Amazon Elastic Container Registry (ECR) is a fully managed container registry that makes it easy to store, manage,
+share, and deploy your container images and artifacts anywhere.
+```
+
 ## ECS
 
         AWS Service to manage containers
@@ -723,6 +732,24 @@ Pay for the control plane unlike ECS.
 Migration from EKS to another cloud provider is not easy.
 ```
 
+- **How it works**
+
+```text
+Eks deploys and manages the control plane "master nodes".
+Eks duplicate the control plane across multiple religious.
+Eks replicate ETCD cluster across multiple religious. 
+Eks deploy worker nodes on virtual EC2 instances called "compute fleet" and connect to EKS.
+The worker nodes are EC2 instances that run the Kubernetes kubelet agent.
+Can be semi-managed by AWS or fully managed by AWS.
+```
+
+### Eks with Fargate
+
+```text
+Make fully-managed serverless compute engine for containers.
+Using Fargate with Amazon EKS allows you to run Kubernetes pods without having to provision and manage EC2 instances.
+```
+
 ## Namespaces
 
     Divide cluster to virtual clusters  FE - BE - DB
@@ -753,3 +780,176 @@ Migration from EKS to another cloud provider is not easy.
     Needed:
         Maximum nodes in the cluster. 
             Create new cluster. - scale horizontally.
+
+- Create Namespace
+
+```shell
+kubectl create namespace test-namespace
+```
+
+- Get Namespaces
+
+```shell   
+kubectl get namespaces
+```
+
+- Get Pods in Namespace
+
+```shell
+kubectl get pods -n test-namespace
+```
+
+- Switch between namespaces
+
+```shell
+kubectl config set-context --current --namespace=test-namespace
+```
+
+- Validate current namespace
+
+```shell
+kubectl config view --minify
+```
+
+```text
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: C:\Users\ahmedgodaa\.minikube\ca.crt
+    extensions:
+    - extension:
+        last-update: Fri, 25 Aug 2023 10:01:13 EET
+        provider: minikube.sigs.k8s.io
+        version: v1.28.0
+    namespace: test-namespace
+    user: minikube
+  name: minikube
+current-context: minikube
+kind: Config
+preferences: {}
+users:
+- name: minikube
+  user:
+    client-certificate: C:\Users\ahmedgodaa\.minikube\profiles\minikube\client.crt
+    client-key: C:\Users\ahmedgodaa\.minikube\profiles\minikube\client.key
+```
+
+- OR
+
+```shell
+kubectl config get-contexts
+ ```
+
+```text
+CURRENT   NAME             CLUSTER          AUTHINFO         NAMESPACE
+          docker-desktop   docker-desktop   docker-desktop
+          kind-kind        kind-kind        kind-kind
+*         minikube         minikube         minikube         test-namespace
+```
+
+- Describe namespace
+
+```shell
+kubectl describe namespace test-namespace
+```
+
+- Return to default namespace
+
+```shell
+kubectl config set-context --current --namespace=default
+```
+
+- Delete namespace
+
+```shell
+kubectl delete namespace test-namespace
+```
+
+- Create namespace with yaml or json file
+
+```shell
+kubectl create -f namespace.yml
+```
+
+- Create development and production namespaces.
+
+```shell
+kubectl create -f https://k8s.io/examples/admin/namespace-dev.json 
+kubectl create -f https://k8s.io/examples/admin/namespace-prod.json 
+```
+
+- Login into development namespace
+
+```shell
+kubectl config set-context --current --namespace=development
+```
+
+- create deployment in development namespace
+
+```shell
+kubectl create deployment spring-test --image=ahmedgodaa/k8s-test:v1.0.1 --namespace=development   
+```
+
+```text
+NAME                          READY   STATUS    RESTARTS   AGE
+spring-test-c7ff98855-n797g   1/1     Running   0          11s
+```
+
+### Kubectl
+
+```shell
+kubectl get pods
+```
+
+```text
+NAME                       READY   STATUS    RESTARTS      AGE
+k8s-test-c9476d8f7-k4l4x   1/1     Running   1 (17h ago)   21h
+k8s-test-c9476d8f7-ltn68   1/1     Running   1 (17h ago)   21h
+```
+
+```shell
+kubectl get namespaces
+```
+
+```text
+NAME                   STATUS   AGE
+default                Active   24h
+kube-node-lease        Active   24h
+kube-public            Active   24h
+kube-system            Active   24h
+kubernetes-dashboard   Active   24h
+```
+
+- Sill return all the pods in all namespaces
+
+```shell
+kubectl get pods --all-namespaces
+```
+
+```text
+default                k8s-test-c9476d8f7-k4l4x                    1/1     Running   1 (17h ago)     21h
+default                k8s-test-c9476d8f7-ltn68                    1/1     Running   1 (17h ago)     21h
+kube-system            coredns-565d847f94-f4mfq                    1/1     Running   3 (17h ago)     24h
+kube-system            etcd-minikube                               1/1     Running   3 (17h ago)     24h
+kube-system            kube-apiserver-minikube                     1/1     Running   3 (17h ago)     24h
+kube-system            kube-controller-manager-minikube            1/1     Running   4 (17h ago)     24h
+kube-system            kube-proxy-lwf79                            1/1     Running   3 (17h ago)     24h
+kube-system            kube-scheduler-minikube                     1/1     Running   3 (17h ago)     24h
+kube-system            registry-2mzlf                              1/1     Running   0               7h
+kube-system            registry-proxy-gjgjg                        1/1     Running   0               7h
+kube-system            storage-provisioner                         1/1     Running   7 (9h ago)      24h
+kubernetes-dashboard   dashboard-metrics-scraper-b74747df5-ccw86   1/1     Running   3 (17h ago)     24h
+kubernetes-dashboard   kubernetes-dashboard-57bbdc5f89-h5z7g       1/1     Running   20 (134m ago)   24h
+```
+
+```text
+kubectl describe pod k8s-test-c9476d8f7-k4l4x
+```
+
+```shell
+kubectl logs k8s-test-c9476d8f7-k4l4x
+```
+
+```shell
+kubectl get pods --namespace kube-system
+```

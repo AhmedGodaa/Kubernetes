@@ -350,14 +350,14 @@ Move-Item .\kind-windows-amd64 c:\k8s\kind.exe
 
 ```shell 
 # This will create single node cluster
-./kind create cluster --name kind-cluster
+kind create cluster --name kind-cluster
 ```
 
 - Create with configuration
 
 ```shell    
 # This will create cluster with 4 nodes 2 master-nodes 2 worker-nodes
-./kind create cluster --name multi-node-cluster --config kind-config.yml
+kind create cluster --name multi-node-cluster --config cluster-config1.yml
 ```
 
 ```shell
@@ -384,13 +384,14 @@ CoreDNS is running at https://127.0.0.1:65458/api/v1/namespaces/kube-system/serv
 - Get clusters
 
 ```shell
-./kind get clusters
+kind get clusters
 ```
 
 - Delete cluster
 
 ```shell
-./kind delete cluster-name
+# name of the cluster without kind- prefix
+kind delete cluster --name ahmed-cluster
 ```
 
 ## Kube Config File
@@ -791,9 +792,9 @@ Using Fargate with Amazon EKS allows you to run Kubernetes pods without having t
 
 - To specify namespace in any k8s service ( **Deployment** - **Service** - **ConfigMap** - **Secrets** )
 
-```text
+```yaml
 apiVersion: v1
-kind: Deployment 
+kind: Deployment
 metadata:
   name: k8s-test
   namespace: development
@@ -864,27 +865,27 @@ kubectl config set-context --current --namespace=test-namespace
 kubectl config view --minify
 ```
 
-```text
+```yaml
 apiVersion: v1
 clusters:
-- cluster:
-    certificate-authority: C:\Users\ahmedgodaa\.minikube\ca.crt
-    extensions:
-    - extension:
-        last-update: Fri, 25 Aug 2023 10:01:13 EET
-        provider: minikube.sigs.k8s.io
-        version: v1.28.0
-    namespace: test-namespace
-    user: minikube
-  name: minikube
+  - cluster:
+      certificate-authority: C:\Users\ahmedgodaa\.minikube\ca.crt
+      extensions:
+        - extension:
+            last-update: Fri, 25 Aug 2023 10:01:13 EET
+            provider: minikube.sigs.k8s.io
+            version: v1.28.0
+      namespace: test-namespace
+      user: minikube
+    name: minikube
 current-context: minikube
 kind: Config
-preferences: {}
+preferences: { }
 users:
-- name: minikube
-  user:
-    client-certificate: C:\Users\ahmedgodaa\.minikube\profiles\minikube\client.crt
-    client-key: C:\Users\ahmedgodaa\.minikube\profiles\minikube\client.key
+  - name: minikube
+    user:
+      client-certificate: C:\Users\ahmedgodaa\.minikube\profiles\minikube\client.crt
+      client-key: C:\Users\ahmedgodaa\.minikube\profiles\minikube\client.key
 ```
 
 - OR
@@ -991,7 +992,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: k8s-test
-#  labels: used when i try to access the deployment from the service
+  #  labels: used when i try to access the deployment from the service
   labels:
     app: k8s-test
     type: backend
@@ -1038,7 +1039,7 @@ metadata:
     version: v1.0.2
 ```
 
-2. Create service
+- Create service
 
 This service will expose only the pods with version v1.0.1
 If version changed to v1.0.2 only service 2 will be exposed.
@@ -1052,6 +1053,113 @@ spec:
     version: v1.0.1
 ```
 
+**Example 2**
+
+```
+    Use labels to select pods to run the application on.
+        - Create kind cluster with 1 master node and 2 worker nodes
+        - Worker nodes have 2 different zones.
+```
+
+- Create Cluster
+
+```shell
+kind create cluster --name test-cluster --config kind/cluster-config2.yml
+```
+
+- Get Nodes
+
+```shell
+kubectl get nodes
+```
+
+```text
+NAME                               STATUS   ROLES           AGE     VERSION
+multi-node-cluster-control-plane   Ready    control-plane   6m22s   v1.27.3
+multi-node-cluster-worker          Ready    <none>          5m55s   v1.27.3
+multi-node-cluster-worker2         Ready    <none>          5m55s   v1.27.3
+```
+
+- Get specific nodes in specific zone
+
+```shell
+ kubectl get nodes --selector zone=us-west-b
+```
+
+```text
+NAME                         STATUS   ROLES    AGE   VERSION
+multi-node-cluster-worker2   Ready    <none>   10m   v1.27.3
+```
+
+- Create Pod - we will not be able to know which node will run the pod
+
+```shell
+kubectl create -f pod/test-pod1.yml
+```
+
+- Specify node to run the pod using nodeSelector in the yaml
+    - this will create node at all nodes with zone = us-west-b
+
+```shell
+# this yml have selector zone = us-west-b
+kubectl create -f pod/test-pod2.yml
+```
+
+### Deployment Selector
+
+- Labels and selector for deployment service explained
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-test
+  namespace: development
+
+  #  They provide metadata information about the deployment itself - used to accessed by other resources like services.
+  #  Other services within the Kubernetes ecosystem can use these labels to identify and work with the deployment
+  #  This will be associated with the deployment object
+
+  labels:
+    app: k8s-test
+    env: development
+    version: v1.0.1
+spec:
+
+  # The selector field defines how the Deployment finds which Pods to manage.
+  # They help in selecting the pods that are controlled by this deployment.
+  # Other Kubernetes components, such as services or ingress controllers, can use these labels to establish connections or routing rules to the pods managed by this deployment.
+
+  selector:
+    matchLabels:
+      app: k8s-test
+      env: development
+      version: v1.0.1
+  replicas: 2
+
+  # The labels specified here are associated with the pods that will be created based on the template.
+  # These labels can be used for various purposes, such as pod selection, service discovery, or monitoring.
+  # Other services or components within the Kubernetes ecosystem can use these labels to target or interact with the pods created by this deployment.
+
+  template:
+    # By keeping the selector labels and template metadata labels the same
+    # you ensure that the pods created by the deployment will have labels
+    # matching the selector labels. This allows the deployment to manage and
+    # control the pods effectively.
+    metadata:
+      labels:
+        app: k8s-test
+        env: development
+        version: v1.0.1
+    spec:
+      containers:
+        - name: k8s-test
+          image: ahmedgodaa/k8s-test:v1.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+```
+
 ### Node Selector
 
 nodeSelector is the simplest recommended form of node selection constraint. You can add the nodeSelector field to your
@@ -1059,7 +1167,9 @@ Pod specification and specify the node labels you want the target node to have. 
 nodes that have each of the labels you specify.
 
 ```
+
 NODE SELECTOR IN POD AND NODE LABLES SHOULD BE THE SAME TO RUN THE POD INTO THAT NODE
+
 ```
 
 - Example
@@ -1132,6 +1242,7 @@ spec:
   containers:
 
   ```
+
 ```
 
 - Burstable
@@ -1173,7 +1284,7 @@ BestEffort:
     If the cluster runs out of resources, the BestEffort pods are the first to be evicted.
 ```
 
-```text
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:

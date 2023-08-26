@@ -15,6 +15,11 @@ spec:
       version: v1.0.1
   replicas: 2
   template:
+    metadata:
+      labels:
+        app: k8s-test
+        env: development
+        version: v1.0.1
     spec:
       containers:
         - name: k8s-test

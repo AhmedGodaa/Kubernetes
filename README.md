@@ -120,51 +120,88 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
 
 ### Use kubectl "_frontend_"
 
-1. get pods
+1. Get pods
 
 ```shell
 ./kubectl get po
 ```
 
-- get namespaces
+- Get namespaces
 
 ```shell
 ./kubectl get namespaces
 ```
 
-- create deployments
+- Create deployments
 
 ```shell
 ./kubectl create deployment --image=spring spring-1
 ```
 
-- get replicaset
+- Get replicaset
 
 ```shell
 ./kubectl get rs
 ```
 
-- Get deployment
-
 ```shell
-./kubectl get deployments
+kubectl get pods
 ```
 
-- **output**.
+```text
+NAME                       READY   STATUS    RESTARTS      AGE
+k8s-test-c9476d8f7-k4l4x   1/1     Running   1 (17h ago)   21h
+k8s-test-c9476d8f7-ltn68   1/1     Running   1 (17h ago)   21h
+```
 
-- --
-
-     - deployment not ready 
-     - image not pulled and deployment 
-     - controller manager is down
+```shell
+kubectl get namespaces
+```
 
 ```text
- 
+NAME                   STATUS   AGE
+default                Active   24h
+kube-node-lease        Active   24h
+kube-public            Active   24h
+kube-system            Active   24h
+kubernetes-dashboard   Active   24h
+```
+
+- Sill return all the pods in all namespaces
+
+```shell
+kubectl get pods --all-namespaces
+```
+
+```text
+default                k8s-test-c9476d8f7-k4l4x                    1/1     Running   1 (17h ago)     21h
+default                k8s-test-c9476d8f7-ltn68                    1/1     Running   1 (17h ago)     21h
+kube-system            coredns-565d847f94-f4mfq                    1/1     Running   3 (17h ago)     24h
+kube-system            etcd-minikube                               1/1     Running   3 (17h ago)     24h
+kube-system            kube-apiserver-minikube                     1/1     Running   3 (17h ago)     24h
+kube-system            kube-controller-manager-minikube            1/1     Running   4 (17h ago)     24h
+kube-system            kube-proxy-lwf79                            1/1     Running   3 (17h ago)     24h
+kube-system            kube-scheduler-minikube                     1/1     Running   3 (17h ago)     24h
+kube-system            registry-2mzlf                              1/1     Running   0               7h
+kube-system            registry-proxy-gjgjg                        1/1     Running   0               7h
+kube-system            storage-provisioner                         1/1     Running   7 (9h ago)      24h
+kubernetes-dashboard   dashboard-metrics-scraper-b74747df5-ccw86   1/1     Running   3 (17h ago)     24h
+kubernetes-dashboard   kubernetes-dashboard-57bbdc5f89-h5z7g       1/1     Running   20 (134m ago)   24h
+```
+
+```text
+kubectl describe pod k8s-test-c9476d8f7-k4l4x
+```
+
+```shell
+kubectl logs k8s-test-c9476d8f7-k4l4x
+```
+
+```shell
+kubectl get pods --namespace kube-system
 ```
 
 ### Running Controller-Manager
-
-- --
 
     controller manager responsible to create replcaset for deployments
 
@@ -449,7 +486,7 @@ docker push ahmedgodaa/k8s-test:v1.0.1
 - Create **Deployment**
 
 ```shell
-kubectl apply -f k8s-test-deploy.yml
+kubectl apply -f dp-backend-dev.yml
 ```
 
 - Create **Service**
@@ -719,7 +756,7 @@ EKS automatically detects and replaces unhealthy control plane instances, and it
 EKS is also integrated with many AWS services to provide scalability and security for your applications.
 ```
 
-- **Prose**
+- **Pros**
 
 ```text
 Full access to k8s ecosystem like helm.
@@ -751,6 +788,22 @@ Using Fargate with Amazon EKS allows you to run Kubernetes pods without having t
 ```
 
 ## Namespaces
+
+- To specify namespace in any k8s service ( **Deployment** - **Service** - **ConfigMap** - **Secrets** )
+
+```text
+apiVersion: v1
+kind: Deployment 
+metadata:
+  name: k8s-test
+  namespace: development
+```
+
+- To know which object accept namespace
+
+```shell
+kubectl api-resources --namespaced=true
+```
 
     Divide cluster to virtual clusters  FE - BE - DB
     Set Permissions:
@@ -884,7 +937,7 @@ kubectl create -f https://k8s.io/examples/admin/namespace-prod.json
 kubectl config set-context --current --namespace=development
 ```
 
-- create deployment in development namespace
+- Create deployment in development namespace
 
 ```shell
 kubectl create deployment spring-test --image=ahmedgodaa/k8s-test:v1.0.1 --namespace=development   
@@ -895,61 +948,3 @@ NAME                          READY   STATUS    RESTARTS   AGE
 spring-test-c7ff98855-n797g   1/1     Running   0          11s
 ```
 
-### Kubectl
-
-```shell
-kubectl get pods
-```
-
-```text
-NAME                       READY   STATUS    RESTARTS      AGE
-k8s-test-c9476d8f7-k4l4x   1/1     Running   1 (17h ago)   21h
-k8s-test-c9476d8f7-ltn68   1/1     Running   1 (17h ago)   21h
-```
-
-```shell
-kubectl get namespaces
-```
-
-```text
-NAME                   STATUS   AGE
-default                Active   24h
-kube-node-lease        Active   24h
-kube-public            Active   24h
-kube-system            Active   24h
-kubernetes-dashboard   Active   24h
-```
-
-- Sill return all the pods in all namespaces
-
-```shell
-kubectl get pods --all-namespaces
-```
-
-```text
-default                k8s-test-c9476d8f7-k4l4x                    1/1     Running   1 (17h ago)     21h
-default                k8s-test-c9476d8f7-ltn68                    1/1     Running   1 (17h ago)     21h
-kube-system            coredns-565d847f94-f4mfq                    1/1     Running   3 (17h ago)     24h
-kube-system            etcd-minikube                               1/1     Running   3 (17h ago)     24h
-kube-system            kube-apiserver-minikube                     1/1     Running   3 (17h ago)     24h
-kube-system            kube-controller-manager-minikube            1/1     Running   4 (17h ago)     24h
-kube-system            kube-proxy-lwf79                            1/1     Running   3 (17h ago)     24h
-kube-system            kube-scheduler-minikube                     1/1     Running   3 (17h ago)     24h
-kube-system            registry-2mzlf                              1/1     Running   0               7h
-kube-system            registry-proxy-gjgjg                        1/1     Running   0               7h
-kube-system            storage-provisioner                         1/1     Running   7 (9h ago)      24h
-kubernetes-dashboard   dashboard-metrics-scraper-b74747df5-ccw86   1/1     Running   3 (17h ago)     24h
-kubernetes-dashboard   kubernetes-dashboard-57bbdc5f89-h5z7g       1/1     Running   20 (134m ago)   24h
-```
-
-```text
-kubectl describe pod k8s-test-c9476d8f7-k4l4x
-```
-
-```shell
-kubectl logs k8s-test-c9476d8f7-k4l4x
-```
-
-```shell
-kubectl get pods --namespace kube-system
-```

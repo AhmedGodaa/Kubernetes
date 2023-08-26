@@ -948,3 +948,241 @@ NAME                          READY   STATUS    RESTARTS   AGE
 spring-test-c7ff98855-n797g   1/1     Running   0          11s
 ```
 
+## Labels and Selectors
+
+```text
+Labels are key/value pairs that are attached to objects, such as pods.
+Labels are intended to be used to specify identifying attributes of objects that are meaningful and relevant to users, but do not directly imply semantics to the core system.
+Labels can be used to organize and to select subsets of objects.
+Labels can be attached to objects at creation time and subsequently added and modified at any time.
+Each object can have a set of key/value labels defined.
+Each Key must be unique for a given object.
+
+Selectors are the core grouping primitive in Kubernetes.
+They are used to identify a set of objects that are relevant for a particular user.
+A selector can be defined as a set of requirements, and any object that matches those requirements exactly will be selected.
+Requirements are separated into two categories: equality-based and set-based.
+
+equality-based requirements allow filtering by label keys and values.
+set-based requirements allow filtering based upon the presence or absence of labels.
+```
+
+### Label
+
+```yaml
+# have 4 labels app - type - version - env
+# should match all of them to select the pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8s-test
+  labels:
+    app: k8s-test
+    type: backend
+    version: v1.0.1
+    env: development
+
+```
+
+- Selectors example
+
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-test
+#  labels: used when i try to access the deployment from the service
+  labels:
+    app: k8s-test
+    type: backend
+    env: development
+    version: v1.0.1
+spec:
+  selector:
+    matchLabels:
+      app: k8s-test
+      type: backend
+      version: v1.0.1
+      env: development
+  template:
+    spec:
+      containers:
+        - name: k8s-test
+          image: ahmedgodaa/k8s-test:v1.0.1
+
+```
+
+### Example
+
+**will create 2 deployment with different versions**
+
+- Deployment 1
+
+```yaml
+metadata:
+  name: k8s-test
+  labels:
+    app: k8s-test
+    type: backend
+    version: v1.0.1
+```
+
+- Deployment 2
+
+```yaml
+metadata:
+  name: k8s-test
+  labels:
+    app: k8s-test
+    type: backend
+    version: v1.0.2
+```
+
+2. Create service
+
+This service will expose only the pods with version v1.0.1
+If version changed to v1.0.2 only service 2 will be exposed.
+
+```yaml
+spec:
+  selector:
+    matchLabels:
+    app: k8s-test
+    type: backend
+    version: v1.0.1
+```
+
+### Node Selector
+
+nodeSelector is the simplest recommended form of node selection constraint. You can add the nodeSelector field to your
+Pod specification and specify the node labels you want the target node to have. Kubernetes only schedules the Pod onto
+nodes that have each of the labels you specify.
+
+```
+NODE SELECTOR IN POD AND NODE LABLES SHOULD BE THE SAME TO RUN THE POD INTO THAT NODE
+```
+
+- Example
+
+```yaml
+# Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8s-test
+spec:
+  nodeSelector:
+    app: monitoring
+    version: v1.0.1
+  containers:
+    - name: k8s-test
+      image: ahmedgodaa/k8s-test:v1.0.1
+ ```
+
+```yaml
+# Node
+apiVersion: v1
+kind: Node
+metadata:
+  name: test-node
+  labels:
+    app: monitoring
+    version: v1.0.1
+```
+
+## Resources
+
+```text
+Resource Quota - Quality of Service -  Limit Range
+```
+
+### Resource Quota
+
+```text
+ResourceQuota is a policy resource that specifies 
+compute resource requirements (such as memory and CPU) 
+and object count limits 
+(such as maximum count of pods per namespace) for namespaces.
+```
+
+### Quality of Service
+
+```text
+Quality of Service (QoS) is a concept in Kubernetes that allows the cluster to make intelligent scheduling decisions.
+QoS is three classes:
+    Guaranteed 
+    Burstable
+    BestEffort
+Guaranteed: 
+    The pod is guaranteed to have the requested resources available at all times.
+    If the node fails, the pod is guaranteed to be restarted on a node with the requested resources.
+    Guaranteed pods are the highest priority in the system.
+    If the cluster runs out of resources, the Guaranteed pods are the last to be evicted.
+```
+
+- Guaranteed
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: guaranteed-pod
+  namespace: default
+spec:
+  containers:
+
+  ```
+```
+
+- Burstable
+
+```text
+Burstable: 
+    The pod is not guaranteed to have requested resources available at all times.
+    If the node fails, the pod may not be restarted on a node with the requested resources.
+    Burstable pods are the second highest priority in the system.
+    If the cluster runs out of resources, the Burstable pods are the second to be evicted.
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: burstable-pod
+  namespace: default
+spec:
+  containers:
+#    - name: a
+#        image: nginx
+#        resources:
+#            requests:
+#            cpu: 100m
+#            memory: 100Mi
+#            limits:
+#            cpu: 200m
+#            memory: 200Mi
+```
+
+- BestEffort
+
+```text
+BestEffort: 
+    The pod is not guaranteed to have requested resources available at all times.
+    If the node fails, the pod may not be restarted on a node with the requested resources.
+    BestEffort pods are the lowest priority in the system.
+    If the cluster runs out of resources, the BestEffort pods are the first to be evicted.
+```
+
+```text
+apiVersion: v1
+kind: Pod
+metadata:
+  name: besteffort-pod
+  namespace: default
+```
+
+### Network Policy
+
+```text
+how a pod is allowed to communicate with various network "entities" (other pods, Service endpoints, external IPs, etc).
+```

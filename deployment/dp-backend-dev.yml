@@ -3,15 +3,18 @@ kind: Deployment
 metadata:
   name: k8s-test
   namespace: development
+  labels:
+    app: k8s-test
+    env: development
+    version: v1.0.1
 spec:
   selector:
     matchLabels:
       app: k8s-test
+      env: development
+      version: v1.0.1
   replicas: 2
   template:
-    metadata:
-      labels:
-        app: k8s-test
     spec:
       containers:
         - name: k8s-test

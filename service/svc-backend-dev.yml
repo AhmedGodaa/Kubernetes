@@ -6,6 +6,8 @@ metadata:
 spec:
   selector:
     app: k8s-test
+    env: development
+    version: v1.0.1
   ports:
     - protocol: "TCP"
       port: 8080

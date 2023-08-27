@@ -97,7 +97,7 @@ rm -r etcd-v3.5.9-linux-arm64.tar.gz
 - Run kube-apiserver
 
 ```shell
-./kube-apiserver --etcd-servers=http://localhost:2379
+kube-apiserver --advertise-address=172.19.0.2 --allow-privileged=true --authorization-modroot     
 ```
 
 - validate stored values after running apiserver
@@ -1053,58 +1053,6 @@ spec:
     version: v1.0.1
 ```
 
-**Example 2**
-
-```
-    Use labels to select pods to run the application on.
-        - Create kind cluster with 1 master node and 2 worker nodes
-        - Worker nodes have 2 different zones.
-```
-
-- Create Cluster
-
-```shell
-kind create cluster --name test-cluster --config kind/cluster-config2.yml
-```
-
-- Get Nodes
-
-```shell
-kubectl get nodes
-```
-
-```text
-NAME                               STATUS   ROLES           AGE     VERSION
-multi-node-cluster-control-plane   Ready    control-plane   6m22s   v1.27.3
-multi-node-cluster-worker          Ready    <none>          5m55s   v1.27.3
-multi-node-cluster-worker2         Ready    <none>          5m55s   v1.27.3
-```
-
-- Get specific nodes in specific zone
-
-```shell
- kubectl get nodes --selector zone=us-west-b
-```
-
-```text
-NAME                         STATUS   ROLES    AGE   VERSION
-multi-node-cluster-worker2   Ready    <none>   10m   v1.27.3
-```
-
-- Create Pod - we will not be able to know which node will run the pod
-
-```shell
-kubectl create -f pod/test-pod1.yml
-```
-
-- Specify node to run the pod using nodeSelector in the yaml
-    - this will create node at all nodes with zone = us-west-b
-
-```shell
-# this yml have selector zone = us-west-b
-kubectl create -f pod/test-pod2.yml
-```
-
 ### Deployment Selector
 
 - Labels and selector for deployment service explained
@@ -1141,6 +1089,7 @@ spec:
   # These labels can be used for various purposes, such as pod selection, service discovery, or monitoring.
   # Other services or components within the Kubernetes ecosystem can use these labels to target or interact with the pods created by this deployment.
 
+  # Pod template  
   template:
     # By keeping the selector labels and template metadata labels the same
     # you ensure that the pods created by the deployment will have labels
@@ -1160,7 +1109,7 @@ spec:
             - containerPort: 8080
 ```
 
-### Node Selector
+## Node Selector
 
 nodeSelector is the simplest recommended form of node selection constraint. You can add the nodeSelector field to your
 Pod specification and specify the node labels you want the target node to have. Kubernetes only schedules the Pod onto
@@ -1172,7 +1121,7 @@ NODE SELECTOR IN POD AND NODE LABLES SHOULD BE THE SAME TO RUN THE POD INTO THAT
 
 ```
 
-- Example
+- **Example 1**
 
 ```yaml
 # Pod
@@ -1181,9 +1130,11 @@ kind: Pod
 metadata:
   name: k8s-test
 spec:
+
   nodeSelector:
     app: monitoring
     version: v1.0.1
+
   containers:
     - name: k8s-test
       image: ahmedgodaa/k8s-test:v1.0.1
@@ -1194,10 +1145,176 @@ spec:
 apiVersion: v1
 kind: Node
 metadata:
-  name: test-node
+  name: node-name
+  # nodeSelector and node labels should are the same.
   labels:
     app: monitoring
     version: v1.0.1
+
+```
+
+**Example 2**
+
+- Use labels to select nodes to run the application on.
+    - Create kind cluster with 1 master node and 2 worker nodes
+    - Worker nodes have 2 different zones.
+
+
+- Create Cluster
+
+```shell
+# cluster-config2.yml have 1 master node and 2 worker nodes with different zones
+kind create cluster --name test-cluster --config kind/cluster-config2.yml
+```
+
+- Get Nodes
+
+```shell
+kubectl get nodes
+```
+
+```text
+NAME                               STATUS   ROLES           AGE     VERSION
+multi-node-cluster-control-plane   Ready    control-plane   6m22s   v1.27.3
+multi-node-cluster-worker          Ready    <none>          5m55s   v1.27.3
+multi-node-cluster-worker2         Ready    <none>          5m55s   v1.27.3
+```
+
+- Get specific nodes in specific zone
+
+```shell
+ kubectl get nodes --selector zone=us-west-b
+```
+
+```text
+NAME                         STATUS   ROLES    AGE   VERSION
+multi-node-cluster-worker2   Ready    <none>   10m   v1.27.3
+```
+
+- Create Pod - we will not be able to know which node will run the pod
+
+```shell
+kubectl create -f pod/test-pod1.yml
+```
+
+- Specify node to run the pod using nodeSelector in the yaml
+    - this will create node at all nodes with zone=us-west-b
+
+```shell
+# test-pod2.yml have nodeSelector with zone=us-west-b
+kubectl create -f pod/test-pod2.yml
+```
+
+## Nodes
+
+- Get nodes
+
+```shell
+kubectl get nodes
+```
+
+- Create Cluster
+
+```shell
+kind create cluster --name test-cluster --config kind/cluster-config2.yml
+```
+
+- Get docker containers
+
+```shell
+# Kind create the node into docker container
+docker ps 
+```
+
+- Access master node container
+
+```shell
+# Master Node
+docker exec -it multi-node-cluster-control-plane bash
+# Worker Node
+docker exec -it multi-node-cluster-worker bash
+```
+
+- See kubernetes components running on the master node
+
+```shell
+ps aux 
+#OR
+ps -ef | grep kube
+```
+
+- Master node k8s component
+
+```text
+1. kube-apiserver
+2. kube-controller-manager
+3. kube-scheduler
+4. etcd
+5. kubelet 
+6. kube-proxy
+```
+
+- Worker node k8s component
+
+```text
+1. kubelet
+2. kube-proxy
+3. container runtime - containerd - docker
+```
+
+## Kubelet
+```text
+Agent running on all nodes report status of nodes and pods to master node
+```
+
+- Check kubelet status - after login into the node
+
+```shell
+systemctl status kubelet
+```
+
+- make problem into kubelet by move it's configuration file
+
+```text
+mkdir /temp/
+mv /etc/kubernetes/kubelet.conf /temp/
+```
+
+- Restart kubelet process
+
+```shell
+systemctl restart kubelet
+```
+
+- Check the node - Node status will be NotReady
+
+```shell
+kubectl get nodes
+ ```
+
+```text
+# Node status will be NotReady because api-server not able to access to kubelet.
+# Scheduler will not be able to assign pods on this node again.
+
+NAME                               STATUS     ROLES           AGE   VERSION
+multi-node-cluster-control-plane   Ready      control-plane   19h   v1.27.3
+multi-node-cluster-worker          NotReady   <none>          19h   v1.27.3
+multi-node-cluster-worker2         Ready      <none>          19h   v1.27.3
+```
+
+- Solve the issue
+
+```shell
+mv /temp/kubelet.conf /etc/kubernetes/kubelet.conf
+systemctl restart kubelet
+systemctl status kubelet
+```
+
+```text
+NAME                               STATUS     ROLES           AGE   VERSION
+multi-node-cluster-control-plane   Ready      control-plane   19h   v1.27.3
+multi-node-cluster-worker          Ready      <none>          19h   v1.27.3
+multi-node-cluster-worker2         Ready      <none>          19h   v1.27.3
 ```
 
 ## Resources

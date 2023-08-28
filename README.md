@@ -1262,7 +1262,8 @@ ps -ef | grep kube
 3. container runtime - containerd - docker
 ```
 
-## Kubelet
+### Kubelet
+
 ```text
 Agent running on all nodes report status of nodes and pods to master node
 ```
@@ -1273,7 +1274,7 @@ Agent running on all nodes report status of nodes and pods to master node
 systemctl status kubelet
 ```
 
-- make problem into kubelet by move it's configuration file
+- make problem into kubelet by move its configuration file
 
 ```text
 mkdir /temp/
@@ -1317,13 +1318,134 @@ multi-node-cluster-worker          Ready      <none>          19h   v1.27.3
 multi-node-cluster-worker2         Ready      <none>          19h   v1.27.3
 ```
 
+- Get pods running on a node
+
+```shell
+kubectl get pods  -o wide --field-selector spec.nodeName=multi-node-cluster-worker
+```
+
+### Node Maintenance
+
+- Cordoning a node
+
+```shell
+# Cordoning a node will prevent scheduler from assigning new pods to this node
+kubectl cordon multi-node-cluster-worker
+```
+
+- Drain OR Migrate all pods from a node
+
+```shell
+# Migrate all pods from a node to another node
+kubectl drain multi-node-cluster-worker --ignore-daemonsets
+```
+
+- After maintenance - uncordon the node
+
+```shell
+kubectl uncordon multi-node-cluster-worker
+```
+
 ## Resources
 
 ```text
 Resource Quota - Quality of Service -  Limit Range
 ```
 
-### Resource Quota
+## Pods
+
+```text
+Pod should not be a code runs for one time it will lead to CrashLoopBackOf or restart.
+Pod should be running process like web server or database.
+```
+
+- Check Pod running on which node.
+
+```shell
+kubectl get pods -o wide
+```
+
+- Create Multi-Container Pod
+
+```shell
+kubectl create -f pod/test-pod3.yml
+```
+
+- Get logs from specific container
+
+```shell
+ kubectl logs two-containers-pod -c k8s-test
+```
+
+- Access container shell
+
+```shell
+kubectl exec -it two-containers-pod -c k8s-test sh
+```
+
+- Make file inside the container
+
+```shell
+kubectl exec -it two-containers-pod -c k8s-test sh
+touch /tmp/test.txt
+```
+
+- Copy file inside the container
+
+```shell 
+# not working
+kubectl cp E:\k8s\k8s\README.md two-containers-pod:/temp/README.md
+```
+
+### Readiness Probe
+
+```text
+Readiness probes are used to know when a pod is ready to serve traffic.
+Readiness probes are defined in the pod spec.
+```
+
+- Example
+
+Spring Boot Actuator provides a number of additional features to help you monitor and manage your application when it’s
+pushed to production.
+
+Use the /actuator/health endpoint to get basic application health information.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8s-test
+spec:
+  containers:
+    - name: k8s-test
+    image: ahmedgodaa/k8s-test:v1.0.1
+    imagePullPolicy: IfNotPresent
+    ports:
+      - containerPort: 8080
+    readinessProbe:
+      httpGet:
+      path: /actuator/health
+      port: 8080
+      httpHeaders:
+        - name: Custom-Header
+          value: to-ke-en-ex-am-pl-e
+      initialDelaySeconds: 5
+      periodSeconds: 5
+  ```
+
+### Liveness Probe
+
+**liveness probe not implemented yet**
+[Reference](https://spring.io/blog/2020/03/25/liveness-and-readiness-probes-with-spring-boot)
+
+```text
+Liveness probes are used to know when a pod is alive or dead.
+Liveness probes are defined in the pod spec.
+Once the liveness probe fails a pod will be restarted.
+```
+
+## Resource Quota
 
 ```text
 ResourceQuota is a policy resource that specifies 

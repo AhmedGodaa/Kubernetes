@@ -788,6 +788,24 @@ Make fully-managed serverless compute engine for containers.
 Using Fargate with Amazon EKS allows you to run Kubernetes pods without having to provision and manage EC2 instances.
 ```
 
+## Deployment
+
+### Create Deployment
+
+- Create deployment with 3 replicaset
+
+```shell
+kubectl create deployment test-deployment --image=ahmedgodaa/k8s-test:v1.0.1
+```
+
+- Describe deployment.
+
+This will show the deployment details like: **Replicas** - **Selector** - **Strategy** - **Template** - **Containers**
+
+```shell
+kubectl describe deployment test-deployment
+```
+
 ## Namespaces
 
 - To specify namespace in any k8s service ( **Deployment** - **Service** - **ConfigMap** - **Secrets** )
@@ -1057,6 +1075,12 @@ spec:
 
 - Labels and selector for deployment service explained
 
+> ### ``📝`` **Note**
+>
+>The .spec.selector field defines how the created ReplicaSet finds which Pods to manage. In this case, you select a
+> label that is defined in the Pod template (app: nginx). However, more sophisticated selection rules are possible, as
+> long as the Pod template itself satisfies the rule.
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -1077,6 +1101,7 @@ spec:
   # The selector field defines how the Deployment finds which Pods to manage.
   # They help in selecting the pods that are controlled by this deployment.
   # Other Kubernetes components, such as services or ingress controllers, can use these labels to establish connections or routing rules to the pods managed by this deployment.
+
 
   selector:
     matchLabels:
@@ -1445,6 +1470,40 @@ Liveness probes are defined in the pod spec.
 Once the liveness probe fails a pod will be restarted.
 ```
 
+## Multi-Container Pods
+
+```text
+Multi-Container Pods are pods that contain more than one container.
+Multi-Container Pods are used in cases where multiple processes need to work together.
+```
+
+- Create Multi-Container Pod
+
+```shell
+# both containers have shared mount volume
+kubectl create -f pod/test-pod4.yml
+```
+
+- Access the pod shell
+
+```shell
+kubectl exec -it sidecar-container-demo sh
+```
+
+- Use bash
+
+```shell
+bash
+```
+
+- Access Created Html file which created by debian container in the nginx container.
+
+```shell
+# this html file will be deployed on the nginx container
+cd /usr/share/nginx/html
+cat index.html
+```
+
 ## Resource Quota
 
 ```text
@@ -1535,4 +1594,131 @@ metadata:
 
 ```text
 how a pod is allowed to communicate with various network "entities" (other pods, Service endpoints, external IPs, etc).
+```
+
+## Helm
+
+```text
+    Helm is a tool for managing Kubernetes charts. Charts are packages of pre-configured Kubernetes resources.
+    Helm is a tool that streamlines installing and managing Kubernetes applications.
+```
+
+- Get all helm releases
+
+```shell
+helm list
+```
+
+- Install Mysql using helm
+
+```shell
+helm install my-sql oci://registry-1.docker.io/bitnamicharts/mysql
+```
+
+- Validate mysql
+
+```shell
+kubectl  kubectl get pods -w --namespace default
+```
+
+```text
+> Note:
+
+Execute the following to get the administrator credentials:
+
+echo Username: root
+MYSQL_ROOT_PASSWORD=$(kubectl get secret --namespace default my-sql-mysql -o jsonpath="{.data.mysql-root-password}" | base64 -d)
+
+To connect to your database:
+
+1. Run a pod that you can use as a client:
+
+   kubectl run my-sql-mysql-client --rm --tty -i --restart='Never' --image  docker.io/bitnami/mysql:8.0.34-debian-11-r31 --namespace default --env MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD --command -- bash
+
+2. To connect to primary service (read/write):
+
+   mysql -h my-sql-mysql.default.svc.cluster.local -uroot -p"$MYSQL_ROOT_PASSWORD"
+
+```
+
+- Get the mysql release secret as json
+
+```shell
+kubectl get secret --namespace default my-sql-mysql -o json
+```
+
+```json
+{
+  "apiVersion": "v1",
+  "data": {
+    "mysql-password": "MWFVRkk3UTFPdw==",
+    "mysql-root-password": "V0VIb3l4Vjc5WQ=="
+  },
+  "kind": "Secret",
+  "metadata": {
+    "annotations": {
+      "meta.helm.sh/release-name": "my-sql",
+      "meta.helm.sh/release-namespace": "default"
+    },
+    "creationTimestamp": "2023-08-31T15:15:09Z",
+    "labels": {
+      "app.kubernetes.io/instance": "my-sql",
+      "app.kubernetes.io/managed-by": "Helm",
+      "app.kubernetes.io/name": "mysql",
+      "helm.sh/chart": "mysql-9.12.1"
+    },
+    "name": "my-sql-mysql",
+    "namespace": "default",
+    "resourceVersion": "109476",
+    "uid": "cba38e54-c79f-40d4-b61e-ead7afc27bd0"
+  },
+  "type": "Opaque"
+}
+```
+
+- Get the mysql release secret as yaml
+
+```shell
+kubectl get secret --namespace default my-sql-mysql -o yaml
+```
+
+```yaml
+apiVersion: v1
+data:
+  mysql-password: MWFVRkk3UTFPdw==
+  mysql-root-password: V0VIb3l4Vjc5WQ==
+kind: Secret
+metadata:
+  annotations:
+    meta.helm.sh/release-name: my-sql
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "2023-08-31T15:15:09Z"
+  labels:
+    app.kubernetes.io/instance: my-sql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    helm.sh/chart: mysql-9.12.1
+  name: my-sql-mysql
+  namespace: default
+  resourceVersion: "109476"
+  uid: cba38e54-c79f-40d4-b61e-ead7afc27bd0
+type: Opaque
+```
+
+- Get the mysql password from the path direct
+
+```shell
+kubectl get secret --namespace default my-sql-mysql -o jsonpath="{.data.mysql-root-password}"
+```
+
+- Install Prometheus using helm
+
+
+```shell
+# Add prometheus helm repo
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# Update helm repo
+helm repo update
+#Install Helm Chart
+helm install prometheus prometheus-community/kube-prometheus-stack
 ```

@@ -1,222 +1,5 @@
 # Documentation
 
-## Download K8s
-
-legacy version
-
-- Download **Api-Server**
-
-```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-apiserver"
-chmod +x kube-apiserver
-```
-
-- Download **Controller-Manager**
-
-```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-controller-manager"
-chmod +x kube-controller-manager
-```
-
-- Download **Scheduler**
-
-```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-scheduler"
-chmod +x kube-scheduler
-```
-
-- Download **Kube-Proxy**
-
-```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kube-proxy"
-chmod +x kube-proxy
-```
-
-- Download **Kubelet**
-
-```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kubelet"
-chmod +x kubelet
-```
-
-- Download **Kubectl**
-
-```shell
-curl -LO "https://dl.k8s.io/v1.27.4/bin/linux/amd64/kubectl"
-chmod +x kubectl
-```
-
-- Download **etcd**
-
-```shell
-curl -LO "https://github.com/etcd-io/etcd/releases/download/v3.5.9/etcd-v3.5.9-linux-amd64.tar.gz"
-tar -xvf etcd-v3.5.9-linux-arm64.tar.gz
-rm -r etcd-v3.5.9-linux-arm64.tar.gz
-```
-
-## Running K8s
-
-### Running etcd
-
-- Run  **etcd**
-
-```shell
-./etcd-v3.5.9-linux-amd64/etcd 
-```
-
-- Validate **etcd**
-
-```shell
-./etcd-v3.5.9-linux-amd64/etcdctl member list -w table
-```
-
-```text
-+------------------+---------+---------+-----------------------+-----------------------+------------+
-|        ID        | STATUS  |  NAME   |      PEER ADDRS       |     CLIENT ADDRS      | IS LEARNER |
-+------------------+---------+---------+-----------------------+-----------------------+------------+
-| 8e9e05c52164694d | started | default | http://localhost:2380 | http://localhost:2379 |      false |
-+------------------+---------+---------+-----------------------+-----------------------+------------+
-```
-
-- check tables health
-
-```shell
-./etcd-v3.5.9-linux-amd64/etcdctl endpoint status -w table
-```
-
-```text
-+----------------+------------------+---------+---------+-----------+------------+-----------+------------+--------------------+--------+
-|    ENDPOINT    |        ID        | VERSION | DB SIZE | IS LEADER | IS LEARNER | RAFT TERM | RAFT INDEX | RAFT APPLIED INDEX | ERRORS |
-+----------------+------------------+---------+---------+-----------+------------+-----------+------------+--------------------+--------+
-| 127.0.0.1:2379 | 8e9e05c52164694d |   3.5.9 |   20 kB |      true |      false |         2 |          4 |                  4 |        |
-+----------------+------------------+---------+---------+-----------+------------+-----------+------------+--------------------+--------+
-```
-
-### Running kube-apiserver
-
-- Run kube-apiserver
-
-```shell
-kube-apiserver --advertise-address=172.19.0.2 --allow-privileged=true --authorization-modroot     
-```
-
-- validate stored values after running apiserver
-
-```shell
-./etcd-v3.5.9-linux-amd64/etcdctl get / --prefix --keys-only
-```
-
-- get stored namespaces
-
-```shell
-./etcd-v3.5.9-linux-amd64/etcdctl get / --prefix --keys-only | grep namespaces
-```
-
-- get stored deployments
-
-```shell
-./etcd-v3.5.9-linux-amd64/etcdctl get / --prefix --keys-only | grep deployments
-```
-
-### Use kubectl "_frontend_"
-
-1. Get pods
-
-```shell
-./kubectl get po
-```
-
-- Get namespaces
-
-```shell
-./kubectl get namespaces
-```
-
-- Create deployments
-
-```shell
-./kubectl create deployment --image=spring spring-1
-```
-
-- Get replicaset
-
-```shell
-./kubectl get rs
-```
-
-```shell
-kubectl get pods
-```
-
-```text
-NAME                       READY   STATUS    RESTARTS      AGE
-k8s-test-c9476d8f7-k4l4x   1/1     Running   1 (17h ago)   21h
-k8s-test-c9476d8f7-ltn68   1/1     Running   1 (17h ago)   21h
-```
-
-```shell
-kubectl get namespaces
-```
-
-```text
-NAME                   STATUS   AGE
-default                Active   24h
-kube-node-lease        Active   24h
-kube-public            Active   24h
-kube-system            Active   24h
-kubernetes-dashboard   Active   24h
-```
-
-- Sill return all the pods in all namespaces
-
-```shell
-kubectl get pods --all-namespaces
-```
-
-```text
-default                k8s-test-c9476d8f7-k4l4x                    1/1     Running   1 (17h ago)     21h
-default                k8s-test-c9476d8f7-ltn68                    1/1     Running   1 (17h ago)     21h
-kube-system            coredns-565d847f94-f4mfq                    1/1     Running   3 (17h ago)     24h
-kube-system            etcd-minikube                               1/1     Running   3 (17h ago)     24h
-kube-system            kube-apiserver-minikube                     1/1     Running   3 (17h ago)     24h
-kube-system            kube-controller-manager-minikube            1/1     Running   4 (17h ago)     24h
-kube-system            kube-proxy-lwf79                            1/1     Running   3 (17h ago)     24h
-kube-system            kube-scheduler-minikube                     1/1     Running   3 (17h ago)     24h
-kube-system            registry-2mzlf                              1/1     Running   0               7h
-kube-system            registry-proxy-gjgjg                        1/1     Running   0               7h
-kube-system            storage-provisioner                         1/1     Running   7 (9h ago)      24h
-kubernetes-dashboard   dashboard-metrics-scraper-b74747df5-ccw86   1/1     Running   3 (17h ago)     24h
-kubernetes-dashboard   kubernetes-dashboard-57bbdc5f89-h5z7g       1/1     Running   20 (134m ago)   24h
-```
-
-```text
-kubectl describe pod k8s-test-c9476d8f7-k4l4x
-```
-
-```shell
-kubectl logs k8s-test-c9476d8f7-k4l4x
-```
-
-```shell
-kubectl get pods --namespace kube-system
-```
-
-### Running Controller-Manager
-
-    controller manager responsible to create replcaset for deployments
-
-- Run controller-manager
-
-```shell
-./kube-controller-manager -master=http://localhost:8080
-```
-
-- Validate replicaset creation
-
-```shell
-./kubectl get rs 
-```
-
 ## MiniKube
 
     Single Node Cluster
@@ -1713,12 +1496,104 @@ kubectl get secret --namespace default my-sql-mysql -o jsonpath="{.data.mysql-ro
 
 - Install Prometheus using helm
 
+1. Create kind cluster because it didn't work on minikube
+
+```shell
+kind creawte cluster --name helm-test-cluster
+# change the context to the new cluster
+kubectl config use-context helm-test-cluster
+```
+
+2. Install prometheus using helm
+
+```shell
+2. Install prometheus using helm
+
 
 ```shell
 # Add prometheus helm repo
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# Validate repo added 
+helm repo  list
 # Update helm repo
 helm repo update
 #Install Helm Chart
 helm install prometheus prometheus-community/kube-prometheus-stack
 ```
+
+- Get created pods of helm prometheus installation
+
+```shell
+kubectl --namespace default get pods -l "release=prometheus"
+#OR to see all created pods 
+kubectl get pods -o wide 
+# Node the grafana pods
+```
+
+- Validate the prometheus service so to access prometheus
+
+```shell
+kubectl get services
+```
+
+- Will access the prometheus using the grafana service
+
+```shell
+kubectl port-forward --namespace default service/prometheus-grafana 3000:80
+```
+
+- Access prometheus using the browser
+
+```shell
+http://localhost:3000
+```
+
+- Temp way of changing the service type
+
+> Edit the type from **ClusterIP** to **NodePort**
+
+```shell
+kubectl edit service prometheus-grafana 
+```
+
+- Access the chart configuration
+
+> `📝` This can be applied to any helm chart
+
+```shell
+helm show values prometheus-community/kube-prometheus-stack
+```
+
+- Direct the output to a file
+
+```shell
+helm show values prometheus-community/kube-prometheus-stack > prometheus-values.yml
+```
+
+- We are able to find the password on the yml for grafana
+
+```yaml
+  adminPassword: prom-operator
+```
+
+- OR we can use this command with linux to get the password
+
+```shell
+helm show values prometheus-community/kube-prometheus-stack | grep adminPassword
+```
+
+- Override the values
+
+```shell
+helm upgrade prometheus prometheus-community/kube-prometheus-stack --values helm-chart-values/prometheus-values.yml
+```
+
+- Override the values - admin password using cmd
+
+```shell
+helm upgrade prometheus prometheus-community/kube-prometheus-stack --set grafana.adminPassword=test.Password123
+```
+
+> Login with new password to grafana.
+> Make Sure to port-forward the service after again apply for new services and pods.
+

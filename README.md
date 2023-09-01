@@ -1597,3 +1597,69 @@ helm upgrade prometheus prometheus-community/kube-prometheus-stack --set grafana
 > Login with new password to grafana.
 > Make Sure to port-forward the service after again apply for new services and pods.
 
+- Change the Cluster Service Type
+
+> Check Documentation [Search Github](https://github.com/grafana/helm-charts/tree/main/charts/grafana)
+
+```shell
+kubectl upgrade prometheus prometheus-community/kube-prometheus-stack --set grafana.service.type=NodePort
+```
+
+- OR - using the yml
+
+```yaml
+  service:
+    portName: http-web
+    type: NodePort
+```
+
+- Use override separate value file
+
+```shell
+helm upgrade prometheus prometheus-community/kube-prometheus-stack --values helm-chart-values/prometheus-override-values-test1.yml
+```
+
+### Avoid SnowFlack Server
+
+> #### **Note📝**
+> If we want to create a new cluster in different server of the current server we need to return back to the server
+> history and see what changes we have done on this cluster on the past and this is impossible so once we need to create
+> new cluster we need to have script all the configurations steps are defined so once we want to create the new cluster
+> we run the script and this will replicate the cluster.
+
+- Uninstall current chart
+
+```shell
+helm uninstall prometheus
+```
+
+- Pull remote helm chart
+
+```shell
+# It will be "helm pull + github.url "
+# OR 
+# "Helm pull + added repo artifactory"
+# This downloaded tar file 
+helm pull prometheus-community/kube-prometheus-stack
+# This will untar the file 
+helm pull prometheus-community/kube-prometheus-stack --untar 
+```
+
+- Helm install from local chart
+
+```shell
+helm install prometheus ./helm-charts/kube-prometheus-stack
+```
+
+- Validate the chart installed
+
+```shell
+helm list
+kubectl get pods 
+kubectl get services  
+```
+
+> `📝` Note:
+> Don't change in the values file instead make override file that override the values of the chart
+> so whenever you want to upgrade the pulled chart you don't need to edit one by one the updated value before.
+> like file  `helm-chart-values/prometheus-override-values-test1.yml`

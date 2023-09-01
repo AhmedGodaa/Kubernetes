@@ -1,0 +1,7 @@
+# This file will override only this values in the hierarchy values.
+grafana:
+  adminPassword: test.Password123
+  service:
+    portName: service
+    type: NodePort
+    nodePort: 30001

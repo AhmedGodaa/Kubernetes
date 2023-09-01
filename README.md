@@ -1,5 +1,318 @@
 # Documentation
 
+## Helm
+
+```text
+Helm is a tool for managing Kubernetes charts. Charts are packages of pre-configured Kubernetes resources.
+Helm is a tool that streamlines installing and managing Kubernetes applications.
+```
+
+- Get all helm releases
+
+```shell
+helm list
+```
+
+- Install Mysql using helm
+
+```shell
+helm install my-sql oci://registry-1.docker.io/bitnamicharts/mysql
+```
+
+- Validate mysql
+
+```shell
+kubectl  kubectl get pods -w --namespace default
+```
+
+```text
+> Note:
+
+Execute the following to get the administrator credentials:
+
+echo Username: root
+MYSQL_ROOT_PASSWORD=$(kubectl get secret --namespace default my-sql-mysql -o jsonpath="{.data.mysql-root-password}" | base64 -d)
+
+To connect to your database:
+
+1. Run a pod that you can use as a client:
+
+   kubectl run my-sql-mysql-client --rm --tty -i --restart='Never' --image  docker.io/bitnami/mysql:8.0.34-debian-11-r31 --namespace default --env MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD --command -- bash
+
+2. To connect to primary service (read/write):
+
+   mysql -h my-sql-mysql.default.svc.cluster.local -uroot -p"$MYSQL_ROOT_PASSWORD"
+
+```
+
+- Get the mysql release secret as json
+
+```shell
+kubectl get secret --namespace default my-sql-mysql -o json
+```
+
+```json
+{
+  "apiVersion": "v1",
+  "data": {
+    "mysql-password": "MWFVRkk3UTFPdw==",
+    "mysql-root-password": "V0VIb3l4Vjc5WQ=="
+  },
+  "kind": "Secret",
+  "metadata": {
+    "annotations": {
+      "meta.helm.sh/release-name": "my-sql",
+      "meta.helm.sh/release-namespace": "default"
+    },
+    "creationTimestamp": "2023-08-31T15:15:09Z",
+    "labels": {
+      "app.kubernetes.io/instance": "my-sql",
+      "app.kubernetes.io/managed-by": "Helm",
+      "app.kubernetes.io/name": "mysql",
+      "helm.sh/chart": "mysql-9.12.1"
+    },
+    "name": "my-sql-mysql",
+    "namespace": "default",
+    "resourceVersion": "109476",
+    "uid": "cba38e54-c79f-40d4-b61e-ead7afc27bd0"
+  },
+  "type": "Opaque"
+}
+```
+
+- Get the mysql release secret as yaml
+
+```shell
+kubectl get secret --namespace default my-sql-mysql -o yaml
+```
+
+```yaml
+apiVersion: v1
+data:
+  mysql-password: MWFVRkk3UTFPdw==
+  mysql-root-password: V0VIb3l4Vjc5WQ==
+kind: Secret
+metadata:
+  annotations:
+    meta.helm.sh/release-name: my-sql
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "2023-08-31T15:15:09Z"
+  labels:
+    app.kubernetes.io/instance: my-sql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql
+    helm.sh/chart: mysql-9.12.1
+  name: my-sql-mysql
+  namespace: default
+  resourceVersion: "109476"
+  uid: cba38e54-c79f-40d4-b61e-ead7afc27bd0
+type: Opaque
+```
+
+- Get the mysql password from the path direct
+
+```shell
+kubectl get secret --namespace default my-sql-mysql -o jsonpath="{.data.mysql-root-password}"
+```
+
+- Install Prometheus using helm
+
+1. Create kind cluster because it didn't work on minikube
+
+```shell
+kind creawte cluster --name helm-test-cluster
+# change the context to the new cluster
+kubectl config use-context helm-test-cluster
+```
+
+2. Install prometheus using helm
+
+```shell
+2. Install prometheus using helm
+
+
+```shell
+# Add prometheus helm repo
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# Validate repo added 
+helm repo  list
+# Update helm repo
+helm repo update
+#Install Helm Chart
+helm install prometheus prometheus-community/kube-prometheus-stack
+```
+
+- Get created pods of helm prometheus installation
+
+```shell
+kubectl --namespace default get pods -l "release=prometheus"
+#OR to see all created pods 
+kubectl get pods -o wide 
+# Node the grafana pods
+```
+
+- Validate the prometheus service so to access prometheus
+
+```shell
+kubectl get services
+```
+
+- Will access the prometheus using the grafana service
+
+```shell
+kubectl port-forward --namespace default service/prometheus-grafana 3000:80
+```
+
+- Access prometheus using the browser
+
+```shell
+http://localhost:3000
+```
+
+- Temp way of changing the service type
+
+> Edit the type from **ClusterIP** to **NodePort**
+
+```shell
+kubectl edit service prometheus-grafana 
+```
+
+- Access the chart configuration
+
+> `📝` This can be applied to any helm chart
+
+```shell
+helm show values prometheus-community/kube-prometheus-stack
+```
+
+- Direct the output to a file
+
+```shell
+helm show values prometheus-community/kube-prometheus-stack > prometheus-values.yml
+```
+
+- We are able to find the password on the yml for grafana
+
+```yaml
+  adminPassword: prom-operator
+```
+
+- OR we can use this command with linux to get the password
+
+```shell
+helm show values prometheus-community/kube-prometheus-stack | grep adminPassword
+```
+
+- Override the values
+
+```shell
+helm upgrade prometheus prometheus-community/kube-prometheus-stack --values helm-chart-values/prometheus-values.yml
+```
+
+- Override the values - admin password using cmd
+
+```shell
+helm upgrade prometheus prometheus-community/kube-prometheus-stack --set grafana.adminPassword=test.Password123
+```
+
+> Login with new password to grafana.
+> Make Sure to port-forward the service after again apply for new services and pods.
+
+- Change the Cluster Service Type
+
+> Check Documentation [Search GitHub](https://github.com/grafana/helm-charts/tree/main/charts/grafana)
+
+```shell
+kubectl upgrade prometheus prometheus-community/kube-prometheus-stack --set grafana.service.type=NodePort
+```
+
+- OR - using the yml
+
+```yaml
+  service:
+    portName: http-web
+    type: NodePort
+```
+
+- Use override separate value file
+
+```shell
+helm upgrade prometheus prometheus-community/kube-prometheus-stack --values helm-chart-values/prometheus-override-values-test1.yml
+```
+
+### Avoid SnowFlack Server
+
+> #### **Note📝**
+> If we want to create a new cluster in different server of the current server we need to return back to the server
+> history and see what changes we have done on this cluster on the past and this is impossible so once we need to create
+> new cluster we need to have script all the configurations steps are defined so once we want to create the new cluster
+> we run the script and this will replicate the cluster.
+
+- Uninstall current chart
+
+```shell
+helm uninstall prometheus
+```
+
+- Pull remote helm chart
+
+```shell
+# It will be "helm pull + github.url "
+# OR 
+# "Helm pull + added repo artifactory"
+# This downloaded tar file 
+helm pull prometheus-community/kube-prometheus-stack
+# This will untar the file 
+helm pull prometheus-community/kube-prometheus-stack --untar 
+```
+
+- Helm install from local chart
+
+```shell
+helm install prometheus ./helm-charts/kube-prometheus-stack
+```
+
+- Validate the chart installed
+
+```shell
+helm list
+kubectl get pods 
+kubectl get services  
+```
+
+> `📝` Note:
+> Don't change in the values file instead make override file that override the values of the chart
+> so whenever you want to upgrade the pulled chart you don't need to edit one by one the updated value before.
+> like file  `helm-chart-values/prometheus-override-values-test1.yml`
+
+- Generate the yaml file from the helm chart
+
+```shell
+mkdir helm-charts
+cd helm-charts
+helm pull prometheus-community/kube-prometheus-stack --untar 
+cd ../
+helm template prometheus ./helm-charts/kube-prometheus-stack > generated-helm-charts-yml/prometheus-generated.yml
+```
+
+> `📝` Note:
+>
+> Now we can use this yaml to create the application using this yaml there is no need to depend on the chart anymore.
+> We can make the yaml as the source of truth for the application and this is the file we are going to maintain.
+> This yaml should be stored on source-control, and it should be our own chart reference.
+
+- Install the generated yaml
+
+```shell
+kubectl create -f generated-helm-charts-yml/prometheus-generated.yml
+```
+
+- Create Own chart
+
+```shell
+helm create my-chart
+```
+
 ## MiniKube
 
     Single Node Cluster
@@ -1324,8 +1637,6 @@ spec:
 
   ```
 
-```
-
 - Burstable
 
 ```text
@@ -1378,288 +1689,3 @@ metadata:
 ```text
 how a pod is allowed to communicate with various network "entities" (other pods, Service endpoints, external IPs, etc).
 ```
-
-## Helm
-
-```text
-    Helm is a tool for managing Kubernetes charts. Charts are packages of pre-configured Kubernetes resources.
-    Helm is a tool that streamlines installing and managing Kubernetes applications.
-```
-
-- Get all helm releases
-
-```shell
-helm list
-```
-
-- Install Mysql using helm
-
-```shell
-helm install my-sql oci://registry-1.docker.io/bitnamicharts/mysql
-```
-
-- Validate mysql
-
-```shell
-kubectl  kubectl get pods -w --namespace default
-```
-
-```text
-> Note:
-
-Execute the following to get the administrator credentials:
-
-echo Username: root
-MYSQL_ROOT_PASSWORD=$(kubectl get secret --namespace default my-sql-mysql -o jsonpath="{.data.mysql-root-password}" | base64 -d)
-
-To connect to your database:
-
-1. Run a pod that you can use as a client:
-
-   kubectl run my-sql-mysql-client --rm --tty -i --restart='Never' --image  docker.io/bitnami/mysql:8.0.34-debian-11-r31 --namespace default --env MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD --command -- bash
-
-2. To connect to primary service (read/write):
-
-   mysql -h my-sql-mysql.default.svc.cluster.local -uroot -p"$MYSQL_ROOT_PASSWORD"
-
-```
-
-- Get the mysql release secret as json
-
-```shell
-kubectl get secret --namespace default my-sql-mysql -o json
-```
-
-```json
-{
-  "apiVersion": "v1",
-  "data": {
-    "mysql-password": "MWFVRkk3UTFPdw==",
-    "mysql-root-password": "V0VIb3l4Vjc5WQ=="
-  },
-  "kind": "Secret",
-  "metadata": {
-    "annotations": {
-      "meta.helm.sh/release-name": "my-sql",
-      "meta.helm.sh/release-namespace": "default"
-    },
-    "creationTimestamp": "2023-08-31T15:15:09Z",
-    "labels": {
-      "app.kubernetes.io/instance": "my-sql",
-      "app.kubernetes.io/managed-by": "Helm",
-      "app.kubernetes.io/name": "mysql",
-      "helm.sh/chart": "mysql-9.12.1"
-    },
-    "name": "my-sql-mysql",
-    "namespace": "default",
-    "resourceVersion": "109476",
-    "uid": "cba38e54-c79f-40d4-b61e-ead7afc27bd0"
-  },
-  "type": "Opaque"
-}
-```
-
-- Get the mysql release secret as yaml
-
-```shell
-kubectl get secret --namespace default my-sql-mysql -o yaml
-```
-
-```yaml
-apiVersion: v1
-data:
-  mysql-password: MWFVRkk3UTFPdw==
-  mysql-root-password: V0VIb3l4Vjc5WQ==
-kind: Secret
-metadata:
-  annotations:
-    meta.helm.sh/release-name: my-sql
-    meta.helm.sh/release-namespace: default
-  creationTimestamp: "2023-08-31T15:15:09Z"
-  labels:
-    app.kubernetes.io/instance: my-sql
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: mysql
-    helm.sh/chart: mysql-9.12.1
-  name: my-sql-mysql
-  namespace: default
-  resourceVersion: "109476"
-  uid: cba38e54-c79f-40d4-b61e-ead7afc27bd0
-type: Opaque
-```
-
-- Get the mysql password from the path direct
-
-```shell
-kubectl get secret --namespace default my-sql-mysql -o jsonpath="{.data.mysql-root-password}"
-```
-
-- Install Prometheus using helm
-
-1. Create kind cluster because it didn't work on minikube
-
-```shell
-kind creawte cluster --name helm-test-cluster
-# change the context to the new cluster
-kubectl config use-context helm-test-cluster
-```
-
-2. Install prometheus using helm
-
-```shell
-2. Install prometheus using helm
-
-
-```shell
-# Add prometheus helm repo
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-# Validate repo added 
-helm repo  list
-# Update helm repo
-helm repo update
-#Install Helm Chart
-helm install prometheus prometheus-community/kube-prometheus-stack
-```
-
-- Get created pods of helm prometheus installation
-
-```shell
-kubectl --namespace default get pods -l "release=prometheus"
-#OR to see all created pods 
-kubectl get pods -o wide 
-# Node the grafana pods
-```
-
-- Validate the prometheus service so to access prometheus
-
-```shell
-kubectl get services
-```
-
-- Will access the prometheus using the grafana service
-
-```shell
-kubectl port-forward --namespace default service/prometheus-grafana 3000:80
-```
-
-- Access prometheus using the browser
-
-```shell
-http://localhost:3000
-```
-
-- Temp way of changing the service type
-
-> Edit the type from **ClusterIP** to **NodePort**
-
-```shell
-kubectl edit service prometheus-grafana 
-```
-
-- Access the chart configuration
-
-> `📝` This can be applied to any helm chart
-
-```shell
-helm show values prometheus-community/kube-prometheus-stack
-```
-
-- Direct the output to a file
-
-```shell
-helm show values prometheus-community/kube-prometheus-stack > prometheus-values.yml
-```
-
-- We are able to find the password on the yml for grafana
-
-```yaml
-  adminPassword: prom-operator
-```
-
-- OR we can use this command with linux to get the password
-
-```shell
-helm show values prometheus-community/kube-prometheus-stack | grep adminPassword
-```
-
-- Override the values
-
-```shell
-helm upgrade prometheus prometheus-community/kube-prometheus-stack --values helm-chart-values/prometheus-values.yml
-```
-
-- Override the values - admin password using cmd
-
-```shell
-helm upgrade prometheus prometheus-community/kube-prometheus-stack --set grafana.adminPassword=test.Password123
-```
-
-> Login with new password to grafana.
-> Make Sure to port-forward the service after again apply for new services and pods.
-
-- Change the Cluster Service Type
-
-> Check Documentation [Search Github](https://github.com/grafana/helm-charts/tree/main/charts/grafana)
-
-```shell
-kubectl upgrade prometheus prometheus-community/kube-prometheus-stack --set grafana.service.type=NodePort
-```
-
-- OR - using the yml
-
-```yaml
-  service:
-    portName: http-web
-    type: NodePort
-```
-
-- Use override separate value file
-
-```shell
-helm upgrade prometheus prometheus-community/kube-prometheus-stack --values helm-chart-values/prometheus-override-values-test1.yml
-```
-
-### Avoid SnowFlack Server
-
-> #### **Note📝**
-> If we want to create a new cluster in different server of the current server we need to return back to the server
-> history and see what changes we have done on this cluster on the past and this is impossible so once we need to create
-> new cluster we need to have script all the configurations steps are defined so once we want to create the new cluster
-> we run the script and this will replicate the cluster.
-
-- Uninstall current chart
-
-```shell
-helm uninstall prometheus
-```
-
-- Pull remote helm chart
-
-```shell
-# It will be "helm pull + github.url "
-# OR 
-# "Helm pull + added repo artifactory"
-# This downloaded tar file 
-helm pull prometheus-community/kube-prometheus-stack
-# This will untar the file 
-helm pull prometheus-community/kube-prometheus-stack --untar 
-```
-
-- Helm install from local chart
-
-```shell
-helm install prometheus ./helm-charts/kube-prometheus-stack
-```
-
-- Validate the chart installed
-
-```shell
-helm list
-kubectl get pods 
-kubectl get services  
-```
-
-> `📝` Note:
-> Don't change in the values file instead make override file that override the values of the chart
-> so whenever you want to upgrade the pulled chart you don't need to edit one by one the updated value before.
-> like file  `helm-chart-values/prometheus-override-values-test1.yml`

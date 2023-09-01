@@ -1,2 +1,4 @@
 .idea
 k8s.iml
+helm-charts/kube-prometheus-stack/*
+helm-charts/kube-prometheus-stack

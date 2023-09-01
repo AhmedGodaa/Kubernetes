@@ -1,0 +1,48 @@
+---
+# Source: k8s-app-test-chart/templates/service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-test
+  namespace: development
+spec:
+  selector:
+    app: k8s-test
+    env: development
+    version: v1.0.1
+  ports:
+    - protocol: "TCP"
+      port: 8080
+      targetPort: 8080
+  type: NodePort
+---
+# Source: k8s-app-test-chart/templates/deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-test
+  namespace: development
+  labels:
+    app: k8s-test
+    env: development
+    version: v1.0.1
+spec:
+  selector:
+    matchLabels:
+      app: k8s-test
+      env: development
+      version: v1.0.1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: k8s-test
+        env: development
+        version: v1.0.1
+    spec:
+      containers:
+        - name: k8s-test
+          image: ahmedgodaa/k8s-test:v1.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080

@@ -301,17 +301,81 @@ helm template prometheus ./helm-charts/kube-prometheus-stack > generated-helm-ch
 > We can make the yaml as the source of truth for the application and this is the file we are going to maintain.
 > This yaml should be stored on source-control, and it should be our own chart reference.
 
-- Install the generated yaml
+- Install the generated yaml.
 
 ```shell
 kubectl create -f generated-helm-charts-yml/prometheus-generated.yml
 ```
 
-- Create Own chart
+- Create Own chart.
 
 ```shell
-helm create my-chart
+helm create helm-test-chart
 ```
+
+- Delete the current yaml the templates folder.
+
+- Add dummy yaml file to template folder
+
+```yaml
+# helm-test-chart/templates/test1.yml
+test:
+  test1: test1
+```
+
+```yaml
+# helm-test-chart/templates/test2.yml
+test:
+  test2: test2
+```
+
+```shell
+cd helm-test-chart
+# This Will generate the yaml file from the templates folder and save into helm-test-chart.yaml
+helm template helm-test-chart . > templates/helm-test-chart.yaml
+```
+
+- Use default yaml values file to place the values
+
+```shell
+# create new chart k8s-app-test-chart
+helm create k8s-app-test-chart
+# remove tempaltes files
+rm -rf k8s-app-test-chart/templates/*
+# create new templates files - file in the source-control
+touch k8s-app-test-chart/templates/deployment.yaml
+touch k8s-app-test-chart/templates/service.yaml
+```
+
+- update some values in the values.yaml
+
+```yaml
+replicaCount: 1
+
+image:
+  repository: ahmedgodaa/k8s-test
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "v1.0.1"
+```
+
+- Generate the yaml file from the helm chart
+
+```shell
+cd k8s-app-test-chart
+helm template k8s-app-test-chart . > templates/k8s-app-test-chart.yaml
+# The Generated yaml file will be generated in the templates folder
+```
+
+
+> `📝` Note:
+>
+> The yaml in the templates folder will be an input of golang text processor.
+>
+> Docs: https://pkg.go.dev/text/template
+
+
+  - ---
 
 ## MiniKube
 
@@ -319,8 +383,9 @@ helm create my-chart
 
 - Install Minikube
 
-```install
-minikube start --driver=docker
+  ```install
+  minikube start --driver=docker
+
 ```
 
 - Start Minikube

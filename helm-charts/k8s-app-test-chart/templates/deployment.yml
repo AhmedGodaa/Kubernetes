@@ -5,25 +5,25 @@ metadata:
   namespace: {{ .Values.release.namespace }}
   labels:
     app: {{ .Values.image.app}}
-    env: development
-    version: {{ .Values.image.tag }}
+    env:
+    version: {{ lower .Values.image.tag }}
 spec:
   selector:
     matchLabels:
       app: {{ .Values.image.app}}
-      env: {{ .Values.image.labels.env }}
+      env: {{ .Values.environment }}
       version: {{ .Values.image.tag }}
   replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
         app: {{ .Values.image.app}}
-        env: {{ .Values.image.labels.env }}
+        env: {{ .Values.environment }}
         version: {{ .Values.image.tag }}
     spec:
       containers:
         - name: {{ .Values.image.app}}
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          image: {{  .Values.image.repository | default "ahmedgodaa" | lower }}:{{ lower .Values.image.tag }}{{ if eq .Values.environment "development"}}-dev{{else if eq .Values.environment "staging" }}-stg{{else if eq .Values.environment "production"}}-prod{{end}}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8080

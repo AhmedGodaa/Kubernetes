@@ -1,7 +1,7 @@
 # Default values for k8s-app-test-chart.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-
+environment: production
 replicaCount: 1
 release:
   namespace: development
@@ -36,7 +36,7 @@ podSecurityContext: { }
 securityContext: { }
   # capabilities:
   #   drop:
-  #   - ALL
+#   - ALL
 # readOnlyRootFilesystem: true
 # runAsNonRoot: true
 # runAsUser: 1000
@@ -69,7 +69,7 @@ resources: { }
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
   #   cpu: 100m
-  #   memory: 128Mi
+#   memory: 128Mi
 # requests:
 #   cpu: 100m
 #   memory: 128Mi

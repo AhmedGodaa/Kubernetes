@@ -125,7 +125,7 @@ kind creawte cluster --name helm-test-cluster
 kubectl config use-context helm-test-cluster
 ```
 
-2. Install prometheus using helm
+- Install prometheus using helm
 
 ```shell
 2. Install prometheus using helm
@@ -309,11 +309,17 @@ kubectl create -f generated-helm-charts-yml/prometheus-generated.yml
 
 - Create Own chart.
 
+> `📝` Note:
+>
+> The yaml in the templates folder will be an input of golang text processor.
+>
+> Docs: https://pkg.go.dev/text/template
+
 ```shell
 helm create helm-test-chart
 ```
 
-- Delete the current yaml the templates folder.
+- Delete the current yaml the template's folder.
 
 - Add dummy yaml file to template folder
 
@@ -338,11 +344,11 @@ helm template helm-test-chart . > templates/helm-test-chart.yaml
 - Use default yaml values file to place the values
 
 ```shell
-# create new chart k8s-app-test-chart
+# Create new chart k8s-app-test-chart
 helm create k8s-app-test-chart
-# remove tempaltes files
+# Remove tempaltes files
 rm -rf k8s-app-test-chart/templates/*
-# create new templates files - file in the source-control
+# Create new templates files - file in the source-control
 touch k8s-app-test-chart/templates/deployment.yaml
 touch k8s-app-test-chart/templates/service.yaml
 ```
@@ -362,20 +368,37 @@ image:
 - Generate the yaml file from the helm chart
 
 ```shell
+# The Generated yaml file will be generated in the templates folder
 cd k8s-app-test-chart
 helm template k8s-app-test-chart . > templates/k8s-app-test-chart.yaml
-# The Generated yaml file will be generated in the templates folder
 ```
 
-
-> `📝` Note:
+> `📝` **Note**:
 >
-> The yaml in the templates folder will be an input of golang text processor.
->
-> Docs: https://pkg.go.dev/text/template
+> This link contains the helm chart template guide - best practise
+> https://helm.sh/docs/chart_template_guide/getting_started/
 
+- Use helm pipeline function.
 
-  - ---
+```gotemplate
+# This will get the value from the values file
+# If not present "ahmedgodaa" will be default
+# After will lower the repository name
+image: {{  .Values.image.repository | default "ahmedgodaa" | lower }}:{{ lower .Values.image.tag }}
+```
+
+- Use if statement with go templates
+
+```gotemplate
+# If .Values.enviroment
+# equal to "development" add -dev
+# equal to "staging" add -stg
+# equal to "production" add -prod
+
+image: {{  .Values.image.repository | default "ahmedgodaa" | lower }}:{{ lower .Values.image.tag }}{{ if eq .Values.environment "development"}}-dev{{else if eq .Values.environment "staging" }}-stg{{else if eq .Values.environment "production"}}-prod{{end}}
+```
+
+- ---
 
 ## MiniKube
 
@@ -383,9 +406,8 @@ helm template k8s-app-test-chart . > templates/k8s-app-test-chart.yaml
 
 - Install Minikube
 
-  ```install
-  minikube start --driver=docker
-
+```install
+minikube start --driver=docker
 ```
 
 - Start Minikube

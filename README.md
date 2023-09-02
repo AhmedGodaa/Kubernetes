@@ -353,7 +353,7 @@ touch k8s-app-test-chart/templates/deployment.yaml
 touch k8s-app-test-chart/templates/service.yaml
 ```
 
-- update some values in the values.yaml
+- Update some values in the values.yaml
 
 ```yaml
 replicaCount: 1
@@ -378,7 +378,7 @@ helm template k8s-app-test-chart . > templates/k8s-app-test-chart.yaml
 > This link contains the helm chart template guide - best practise
 > https://helm.sh/docs/chart_template_guide/getting_started/
 
-- Use helm pipeline function.
+### Pipeline Function.
 
 ```gotemplate
 # This will get the value from the values file
@@ -398,11 +398,69 @@ image: {{  .Values.image.repository | default "ahmedgodaa" | lower }}:{{ lower .
 image: {{  .Values.image.repository | default "ahmedgodaa" | lower }}:{{ lower .Values.image.tag }}{{ if eq .Values.environment "development"}}-dev{{else if eq .Values.environment "staging" }}-stg{{else if eq .Values.environment "production"}}-prod{{end}}
 ```
 
+### Yaml Template
+
+1. it should be in the templates folder
+2. it should start with `_` underscore so exclude from the generated yaml file
+3. it should end with .tpl extension
+4. it should start with **define** function and name of template
+5. it should end with **end** function .
+
+Template file
+
+```text
+{{ define "test-template" }}
+metadata:
+  name: {{ .Values.environment  }}
+{{ end }}
+```
+
+Yaml File
+
+```yaml
+the `-` after the brackets remove the white space before the line
+apiVersion: v1
+kind: Pod
+  {{- include "test-template" .  }}
+```
+
+### Space sensitive
+
+include function can be used with pipelines but template function no.
+
+- use indent function with include function to include the spaces
+
+Yaml file
+
+```gotemplate
+# Yaml
+apiVersion: v1
+kind: Pod
+{{- include "test-template" . }}
+{{- include "test2-template" . | indent 2}}
+```
+
+Templates file
+
+```text
+{{- define "test-template" }}
+metadata:
+  name: {{ .Values.appName  }}
+{{-  end }}
+
+{{- define "test2-template" }}
+labels:
+  app: {{ .Values.appName  }}
+  env: {{ .Values.environment  }}
+  version: {{ .Values.image.tag  }}
+{{-  end }}
+```
+
 - ---
 
 ## MiniKube
 
-    Single Node Cluster
+Single Node Cluster
 
 - Install Minikube
 

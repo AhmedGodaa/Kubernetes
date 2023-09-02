@@ -1,7 +1,9 @@
 # Default values for k8s-app-test-chart.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+test: TestMessage
 environment: production
+appName: k8s-test
 replicaCount: 1
 release:
   namespace: development
@@ -17,7 +19,6 @@ image:
 
 imagePullSecrets: [ ]
 nameOverride: ""
-fullnameOverride: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -35,7 +36,7 @@ podSecurityContext: { }
 
 securityContext: { }
   # capabilities:
-  #   drop:
+#   drop:
 #   - ALL
 # readOnlyRootFilesystem: true
 # runAsNonRoot: true
@@ -68,7 +69,7 @@ resources: { }
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
-  #   cpu: 100m
+#   cpu: 100m
 #   memory: 128Mi
 # requests:
 #   cpu: 100m

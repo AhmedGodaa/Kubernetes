@@ -16,6 +16,16 @@ spec:
       targetPort: 8080
   type: NodePort
 ---
+# Source: k8s-app-test-chart/templates/test-template-yaml.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8s-test  
+  labels:
+    app: k8s-test
+    env: production
+    version: v1.0.1
+---
 # Source: k8s-app-test-chart/templates/deployment.yml
 apiVersion: apps/v1
 kind: Deployment

@@ -1,0 +1,4 @@
+apiVersion: v1
+kind: Pod
+{{- include "test-template" . }}
+{{- include "test2-template" . | indent 2}}

@@ -370,7 +370,7 @@ image:
 ```shell
 # The Generated yaml file will be generated in the templates folder
 cd k8s-app-test-chart
-helm template k8s-app-test-chart . > templates/k8s-app-test-chart.yaml
+helm template k8s-app-test-chart . > generated/k8s-app-test-chart.yaml
 ```
 
 > `📝` **Note**:
@@ -455,6 +455,30 @@ labels:
   version: {{ .Values.image.tag  }}
 {{-  end }}
 ```
+
+- Install final helm chart
+
+```shell
+# Node: comment the yaml file "/templates/helm-test-chart.yaml"
+
+# 1. generate the yaml - validation
+helm template k8s-app-test-chart . > generated/k8s-app-test-chart.yaml
+# 2. validate not exist chart
+helm list
+# 3. uninstall the chart
+helm uninstall k8s-app-test-chart
+# 4. install the chart
+helm install k8s-app-test-chart ./helm-charts/k8s-app-test-chart --set environment=development
+# 5. change to development namespace
+kubectl config set-context --current --namespace=development
+# 5. upgrade any value
+helm upgrade k8s-app-test-chart ./helm-charts/k8s-app-test-chart --set any-attribute=any-value
+```
+
+> `📝` **Note**:
+>
+> 1. Each namespace is different cluster, we need to deploy each namespace separately.
+> 2. Need login the namespace context deploy on it.
 
 - ---
 

@@ -5,8 +5,6 @@ test: TestMessage
 environment: production
 appName: k8s-test
 replicaCount: 1
-release:
-  namespace: development
 image:
   app: k8s-test
   repository: ahmedgodaa/k8s-test
@@ -35,7 +33,7 @@ podSecurityContext: { }
 # fsGroup: 2000
 
 securityContext: { }
-  # capabilities:
+# capabilities:
 #   drop:
 #   - ALL
 # readOnlyRootFilesystem: true
@@ -68,7 +66,7 @@ resources: { }
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
+# limits:
 #   cpu: 100m
 #   memory: 128Mi
 # requests:

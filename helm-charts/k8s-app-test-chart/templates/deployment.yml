@@ -2,28 +2,28 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.image.app }}
-  namespace: {{ .Values.release.namespace }}
+  namespace: {{ .Values.environment }}
   labels:
     app: {{ .Values.image.app}}
     env:
-    version: {{ lower .Values.image.tag }}
+    version: {{ lower .Values.image.tag }}{{ if eq .Values.environment "development"}}-dev{{else if eq .Values.environment "staging" }}-stg{{end}}
 spec:
   selector:
     matchLabels:
       app: {{ .Values.image.app}}
       env: {{ .Values.environment }}
-      version: {{ .Values.image.tag }}
+      version: {{ lower .Values.image.tag }}{{ if eq .Values.environment "development"}}-dev{{else if eq .Values.environment "staging" }}-stg{{end}}
   replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
         app: {{ .Values.image.app}}
         env: {{ .Values.environment }}
-        version: {{ .Values.image.tag }}
+        version: {{ lower .Values.image.tag }}{{ if eq .Values.environment "development"}}-dev{{else if eq .Values.environment "staging" }}-stg{{end}}
     spec:
       containers:
         - name: {{ .Values.image.app}}
-          image: {{  .Values.image.repository | default "ahmedgodaa" | lower }}:{{ lower .Values.image.tag }}{{ if eq .Values.environment "development"}}-dev{{else if eq .Values.environment "staging" }}-stg{{else if eq .Values.environment "production"}}-prod{{end}}
+          image: {{  .Values.image.repository | default "ahmedgodaa" | lower }}:{{ lower .Values.image.tag }}{{ if eq .Values.environment "development"}}-dev{{else if eq .Values.environment "staging" }}-stg{{end}}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8080

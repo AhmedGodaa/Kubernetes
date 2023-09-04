@@ -1071,6 +1071,137 @@ This will show the deployment details like: **Replicas** - **Selector** - **Stra
 kubectl describe deployment test-deployment
 ```
 
+### Update Deployment
+
+#### Update Deployment Command line
+
+```shell
+kubectl apply -f deployment/dp-backend-dev.yml
+```
+
+```shell
+# Update Deployment
+ kubectl set image deployment/k8s-test k8s-test=ahmedgodaa/k8s-test:v1.0.1-dev
+```
+
+`k8s-test` in the command, is the name of the container.
+pod is creating and container is terminating
+
+```text
+$ kubectl get all
+NAME                            READY   STATUS              RESTARTS   AGE
+pod/k8s-test-7b9dd67d87-mptfp   1/1     Terminating         0          54m
+pod/k8s-test-7b9dd67d87-sst8s   1/1     Running             0          54m
+pod/k8s-test-fd8fdd5c-8qcxv     1/1     Running             0          31s
+pod/k8s-test-fd8fdd5c-tdb9q     0/1     ContainerCreating   0          6s
+```
+
+#### Update Deployment Yaml
+
+##### Using live edit
+
+This Will Open text editor once update and close the editor the deployment will be updated.
+
+```shell
+kubectl edit deployment k8s-test 
+```
+
+```text
+deployment.apps/k8s-test edited
+```
+
+##### Check the Update Status
+
+```shell
+kubectl rollout status deployment k8s-test
+```
+
+```text
+Waiting for rollout to finish: 2 out of 3 new replicas have been updated...
+```
+
+```text
+deployment "k8s-test" successfully rolled out
+```
+
+#### Rolling Back to a Previous Revision
+
+Get All The History with Versions
+
+```shell
+ kubectl rollout history deployment k8s-test
+```
+
+Rollback to Version
+
+```shell
+kubectl rollout undo deployment k8s-test --to-revision=2
+```
+
+```text
+deployment.apps/k8s-test rolled back
+```
+
+### Scaling a Deployment
+
+Upscale replicas to 5
+
+```shell
+kubectl scale deployment k8s-test --replicas=5
+```
+
+```text
+NAME                          READY   STATUS              RESTARTS   AGE
+pod/k8s-test-fd8fdd5c-5vg9k   0/1     ContainerCreating   0          5s
+pod/k8s-test-fd8fdd5c-fskjx   0/1     ContainerCreating   0          5s
+pod/k8s-test-fd8fdd5c-pbb7d   0/1     ContainerCreating   0          5s
+pod/k8s-test-fd8fdd5c-pf56b   1/1     Running             0          5m34s
+pod/k8s-test-fd8fdd5c-zckh6   1/1     Running             0          5m39s
+```
+
+Downscale replicas to 2
+
+```shell
+kubectl scale deployment k8s-test --replicas=2
+```
+
+```text
+NAME                      READY   STATUS        RESTARTS   AGE
+k8s-test-fd8fdd5c-5vg9k   1/1     Terminating   0          10m
+k8s-test-fd8fdd5c-fskjx   1/1     Terminating   0          10m
+k8s-test-fd8fdd5c-pbb7d   1/1     Terminating   0          10m
+k8s-test-fd8fdd5c-pf56b   1/1     Running       0          16m
+k8s-test-fd8fdd5c-zckh6   1/1     Running       0          16m
+```
+
+### Auto scale
+
+This will create k8s object HorizontalPodScaler  `hpa`
+
+```shell
+kubectl autoscale deployment k8s-test --min=2 --max=5 --cpu-percent=90
+```
+
+```text
+horizontalpodautoscaler.autoscaling/k8s-test autoscaled
+```
+
+Get HPAs
+
+```shell
+kubectl get hpa
+```
+
+Delete HPA
+
+```shell
+kubectl delete hpa k8s-test
+```
+
+```text
+horizontalpodautoscaler.autoscaling "k8s-test" deleted
+```
+
 ## Namespaces
 
 - To specify namespace in any k8s service ( **Deployment** - **Service** - **ConfigMap** - **Secrets** )
@@ -1345,6 +1476,8 @@ spec:
 >The .spec.selector field defines how the created ReplicaSet finds which Pods to manage. In this case, you select a
 > label that is defined in the Pod template (app: nginx). However, more sophisticated selection rules are possible, as
 > long as the Pod template itself satisfies the rule.
+
+> Labels should be the same of the selectors
 
 ```yaml
 apiVersion: apps/v1
@@ -1856,5 +1989,5 @@ metadata:
 ### Network Policy
 
 ```text
-how a pod is allowed to communicate with various network "entities" (other pods, Service endpoints, external IPs, etc).
+How a pod is allowed to communicate with various network "entities" (other pods, Service endpoints, external IPs, etc).
 ```

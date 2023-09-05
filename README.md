@@ -496,6 +496,7 @@ minikube start --driver=docker
 
 ```shell
 minikube start
+minikube start --cpus 8 --memory 3801 
 ```
 
 - Check Running
@@ -1200,6 +1201,65 @@ kubectl delete hpa k8s-test
 
 ```text
 horizontalpodautoscaler.autoscaling "k8s-test" deleted
+```
+
+### Pause and Resume a Rollout
+
+Pause the deployment
+
+```shell
+kubectl rollout pause deployment k8s-test
+```
+
+Resume the deployment
+
+```shell
+kubectl rollout resume deployment k8s-test
+```
+
+### Deployment Strategies
+
+#### Rolling Update
+
+Default strategy is `RollingUpdate`
+
+`maxSurge` max number of pods that can be created above the desired number of pods.
+
+`maxUnavailable` max number of pods that can be unavailable during the update process.
+
+```yaml
+# it will not down all the pods when we rolling update only 30% of the pods `3 pods`
+# it will not up all the pods when we rolling update only 30% of the pods `3 pods`
+spec:
+  replicas: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 30%
+      maxUnavailable: 30%
+```
+
+#### Example
+
+1. Create deployment
+2. Change image from `v1.0.1` to `v1.0.1-dev`
+3. Deploy again
+
+```shell
+kubectl apply -f dp-backend-test2.yml
+```
+
+#### Recreate
+
+the old pods will be all terminated before new pods are created.
+all new pods will be created at the same time.
+> `📝` **Note**: This will cause downtime.
+
+```yaml
+spec:
+  replicas: 10
+  strategy:
+    type: Recreate
 ```
 
 ## Namespaces

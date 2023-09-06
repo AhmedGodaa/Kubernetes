@@ -1345,11 +1345,19 @@ cluster.
 
 ### Install
 
+- Set node labels
+
+```shell
+kubectl label node/minikube ingress-ready=true
+# Validate
+kubectl describe node minikube
+```
+
 ```shell
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.0/deploy/static/provider/cloud/deploy.yaml
 ```
 
-OR - using helm chart
+- OR - Using helm chart
 
 ```shell
   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -1359,7 +1367,7 @@ OR - using helm chart
   helm install ingress-nginx ./helm-charts/ingress-nginx  
 ```
 
-Generate ingress-nginx yaml file
+- Generate ingress-nginx yaml file
 
 ```shell
 # generate the yaml file
@@ -1390,20 +1398,41 @@ curl  127.0.0.1:80
 
 ### Ingress Object
 
-Setup deployment and service
+- Setup deployment and service
 
 ```shell
 kubectl apply -f ./deployment/dp-backend-dev.yml
 kubectl apply -f ./service/svc-backend-dev.yml
 ```
 
+- Add Ingress Object to the service
+
+```shell
+kubectl apply -f ./ingress/ing-backend-test1.yml
+```
+
+- Access Ingress Object
+
+```shell
+# port-forward ingress controller service
+kubectl port-forward service/ingress-nginx-controller 80
+# access the app from the ingress
+curl http://127.0.0.1/test 
+```
+
+### Path Based Virtual Hosting
+
+- This will follow the endpoint of the request
+- If `/login` will map to log in service
+- If `/category` will map to category service
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress-service
-#  annotations:
-#    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  name: path-based-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
 spec:
   defaultBackend:
     service:
@@ -1413,31 +1442,71 @@ spec:
   rules:
     - http:
         paths:
-          - path: /?(.*)
-              pathType: Prefix
-              backend:
+          - pathType: Prefix
+            path: /login
+            backend:
               service:
-                name: k8s-test
+                name: login-service
                 port:
-                number: 8080
-  ```
+                  number: 8080
+          - pathType: Prefix
+              path: /category
+              backend:
+                service:
+                  name: category-service
+                  port:
+                    number: 8080
+```         
 
-## Ingress
+### Name Based Virtual Hosting
 
-Set node labels
+- This will follow domain of the request
+- If `login.example.com` will map to log in service
+- If `catalog.example.com` will map to category service
+- If `example.com` will map to default service
 
-```shell
-kubectl label node/minikube ingress-ready=true
-# Validate
-kubectl describe node minikube
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: name-based-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  defaultBackend:
+    service:
+      name: k8s-test
+      port:
+        number: 8080
+  rules:
+    - host: login.example.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: login-service
+                port:
+                  number: 8080
+    - host: catalog.example.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 8080
 ```
+
 
 ## Namespaces
 
 - To specify namespace in any k8s service ( **Deployment** - **Service** - **ConfigMap** - **Secrets** )
 
-  ```yaml
-
+```yaml
 apiVersion: v1
 kind: Deployment
 metadata:

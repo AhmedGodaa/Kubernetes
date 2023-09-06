@@ -1,7 +1,11 @@
 # Documentation
 
-The `kotlin` backend SpringBoot app directory is [k8s-test](k8s-test), It contains single api for testing return "Hello
-World" - `/test`
+- The `kotlin` backend Spring Boot app directory is [k8s-test](k8s-test).
+- The app contains only one api `/test` which return hello world message.
+
+```text
+Hello, World!
+```
 
 ## Helm
 
@@ -1420,6 +1424,10 @@ kubectl port-forward service/ingress-nginx-controller 80
 curl http://127.0.0.1/test 
 ```
 
+```text
+Hello, World!
+```
+
 ### Path Based Virtual Hosting
 
 - This will follow the endpoint of the request
@@ -1500,7 +1508,6 @@ spec:
                 port:
                   number: 8080
 ```
-
 
 ## Namespaces
 

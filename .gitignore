@@ -1,4 +1,6 @@
 .idea
 k8s.iml
-helm-charts/kube-prometheus-stack/*
 helm-charts/kube-prometheus-stack
+helm-charts/ingress-nginx
+.k8s.iml.swp
+.README.md.swp

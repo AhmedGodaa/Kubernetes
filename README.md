@@ -1,5 +1,8 @@
 # Documentation
 
+The `kotlin` backend SpringBoot app directory is [k8s-test](k8s-test), It contains single api for testing return "Hello
+World" - `/test`
+
 ## Helm
 
 ```text
@@ -1262,16 +1265,185 @@ spec:
     type: Recreate
 ```
 
+## Service
+
+The `selector` and `targetPort` should be the same of the pod.\
+Service connect the pod using labels and selectors only.\
+Name of the pod is not important.
+
+> `📝` **Note**:\
+`selector` is mandatory to be able to select the pods\
+`targetPort` is mandatory to equal the `containerPort`
+`containerPort` is mandatory expose the port inside the container\
+`type` is mandatory to expose the service to outside the cluster
+
+### Service Types
+
+1. **ClusterIP** - Pods accessible only on the cluster.
+2. **NodePort** - Use node ip and node port to access outside cluster.
+3. **LoadBalancer** - Use with cloud providers load balancer controller.
+4. **ExternalName** - Use with endpoint object to access outside cluster.
+5. **Headless** - Access Pods directly, without service
+
+### External Name
+
+Access Prometheus from outside the cluster
+
+```shell
+# Download Prometheus and run container
+docker run -p 9090:9090  prometheus prom/prometheus
+# Validate prometheus running
+curl localhost:9090/metrcis
+```
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+spec:
+  type: NodePort
+  selector:
+    app: prometheus
+  ports:
+    - port: 80
+      targetPort: 9090
+      nodePort: 30000
+
+```
+
+Create Endpoint for the service
+
+```yaml
+# Service Running on ip 10.104.86.59
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: prometheus
+subsets:
+  - addresses:
+      - ip: 10.104.86.59
+    ports:
+      - port: 9090
+        name: http
+        protocol: TCP
+```
+
+## Ingress
+
+Expose the service to outside the cluster.\
+Manage the traffic to the services.\
+Provide load balancing, SSL termination and name-based virtual hosting.\
+
+### Ingress Controller
+
+In order for the Ingress resource to work, the cluster must have an ingress controller running.
+
+Unlike other types of controllers which run as part of the kube-controller-manager binary, Ingress controllers are not
+started automatically with a cluster. Use this page to choose the ingress controller implementation that best fits your
+cluster.
+
+### Install
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.0/deploy/static/provider/cloud/deploy.yaml
+```
+
+OR - using helm chart
+
+```shell
+  helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+  helm repo update
+  cd helm-charts
+  helm pull ingress-nginx/ingress-nginx --untar
+  helm install ingress-nginx ./helm-charts/ingress-nginx  
+```
+
+Generate ingress-nginx yaml file
+
+```shell
+# generate the yaml file
+helm template ingress-nginx ./helm-charts/ingress-nginx  > ./generated-helm-charts-yml/ingress-nginx.yml
+# show the values of the yaml
+helm show values ./helm-charts/ingress-nginx > ./generated-helm-charts-yml/ingress-nginx-values.yml
+```
+
+#### Validate Ingress Controller Working
+
+```shell
+kubectl port-forward service/ingress-nginx-controller 80
+curl  127.0.0.1:80
+```
+
+```html
+<!-- will return not found page now working-->
+<!-- it didn't know where to map this request need ingress object-->
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr>
+<center>nginx</center>
+</body>
+</html>
+```
+
+### Ingress Object
+
+Setup deployment and service
+
+```shell
+kubectl apply -f ./deployment/dp-backend-dev.yml
+kubectl apply -f ./service/svc-backend-dev.yml
+```
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-service
+#  annotations:
+#    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  defaultBackend:
+    service:
+      name: k8s-test
+      port:
+        number: 8080
+  rules:
+    - http:
+        paths:
+          - path: /?(.*)
+              pathType: Prefix
+              backend:
+              service:
+                name: k8s-test
+                port:
+                number: 8080
+  ```
+
+## Ingress
+
+Set node labels
+
+```shell
+kubectl label node/minikube ingress-ready=true
+# Validate
+kubectl describe node minikube
+```
+
 ## Namespaces
 
 - To specify namespace in any k8s service ( **Deployment** - **Service** - **ConfigMap** - **Secrets** )
 
-```yaml
+  ```yaml
+
 apiVersion: v1
 kind: Deployment
 metadata:
-  name: k8s-test
-  namespace: development
+name: k8s-test
+namespace: development
+
 ```
 
 - To know which object accept namespace

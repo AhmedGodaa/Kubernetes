@@ -1,0 +1,58 @@
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+  port: 8082
+
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ecommerce
+    username: root
+    password: root
+
+  jpa:
+    general-ddl: true
+    hibernate:
+      ddl-auto: update
+
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 500KB
+      max-request-size: 500KB
+
+
+SpringEcommerce:
+  app:
+    jwtCookieName: AuthenticationSpring
+    jwtSecret: AuthenticationSpringSecretKey
+    jwtExpirationMs: 86400000
+    jwtRefreshExpirationMs: 86400000
+
+
+
+
+management:
+
+  endpoints:
+
+    web:
+      exposure:
+        include: "*"
+      base-path: /actuator
+
+    enabled-by-default: false
+
+  endpoint:
+
+    info:
+      enabled: true
+
+    health:
+      enabled: true
+      show-details: always

@@ -397,12 +397,12 @@ image: {{  .Values.image.repository | default "ahmedgodaa" | lower }}:{{ lower .
 - Use if statement with go templates
 
 ```gotemplate
-# If .Values.enviroment
+# If .Values.environment
 # equal to "development" add -dev
 # equal to "staging" add -stg
 # equal to "production" add -prod
 
-image: {{  .Values.image.repository | default "ahmedgodaa" | lower }}:{{ lower .Values.image.tag }}{{ if eq .Values.environment "development"}}-dev{{else if eq .Values.environment "staging" }}-stg{{else if eq .Values.environment "production"}}-prod{{end}}
+image: {{  .Values.image.repository | default "ahmedgodaa" | lower }}:{{ lower .Values.image.tag }}{{ if eq .Values. "development"}}-dev{{else if eq .Values.environment "staging" }}-stg{{else if eq .Values.environment "production"}}-prod{{end}}
 ```
 
 ### Yaml Template
@@ -2257,25 +2257,6 @@ Burstable:
     If the cluster runs out of resources, the Burstable pods are the second to be evicted.
 ```
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: burstable-pod
-  namespace: default
-spec:
-  containers:
-#    - name: a
-#        image: nginx
-#        resources:
-#            requests:
-#            cpu: 100m
-#            memory: 100Mi
-#            limits:
-#            cpu: 200m
-#            memory: 200Mi
-```
-
 - BestEffort
 
 ```text
@@ -2298,4 +2279,101 @@ metadata:
 
 ```text
 How a pod is allowed to communicate with various network "entities" (other pods, Service endpoints, external IPs, etc).
+```
+
+## Volumes
+
+### ConfigMap
+
+A ConfigMap provides a way to inject configuration data into pods. The data stored in a ConfigMap consumed by
+containerized applications running in a pod.
+
+- Create configmap from file
+
+```shell
+kubectl create configmap test-config --from-file=configmap/application-prop-test.yml
+```
+
+#### Consume ConfigMap Into Pod
+
+##### ConfigMap Values shapes
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-map
+data:
+  # property like key
+  port: 8080
+  environment: development
+  # file like key
+  application-prop-test.yml: |-
+    spring:
+    application:
+        name: k8s-test
+        version: v1.0.1
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmap-demo-pod
+spec:
+  containers:
+    - name: k8s-test-container
+      image: ahmedgodaa/k8s-test:v1.0.0
+      env:
+        # Define the environment variable
+        - name: PORT
+          # from the key name in the ConfigMap.
+          valueFrom:
+            configMapKeyRef:
+              name: test-config-map   # The ConfigMap this value comes from.
+              key: port               # The key to fetch.
+
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: test-config-map
+              key: environment
+```
+
+> `📝` **Note**: \
+> 1. ConfigMap can be used as environment variables or as files in a volume.
+> 2. To Use File in the configmap you should use `volumeMounts` and `volumes` in the pod spec to mount the files.
+
+### Use env mounted file in the configmap
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmap-demo-pod
+spec:
+  containers:
+    - name: k8s-test-container
+    image: ahmedgodaa/k8s-test:v1.0.0
+    env:
+      - name: ENVIRONMENT
+      valueFrom:
+        configMapKeyRef:
+        name: test-config-map
+        key: application-prop-test.yml
+    volumeMounts:
+      - name: config-volume
+      mountPath: /config
+      readOnly: true
+  #      create a volume to store the configmap
+  volumes:
+    #    volume name
+    - name: config-volume
+      configMap:
+        name: test-config-map
+        items:
+          - key: application-prop-test.yml
+            path: /config/application-prop-test.yml
+    - name: data
+        emptyDir: { }
 ```

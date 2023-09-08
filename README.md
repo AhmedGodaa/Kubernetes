@@ -2377,3 +2377,36 @@ spec:
     - name: data
         emptyDir: { }
 ```
+
+## Secrets
+
+#### Secrets Types
+
+1. Opaque
+2. Service Account Token
+3. Basic Auth
+4. SSH
+5. TLS - tls.crt - tls.key
+6. Docker Config
+7. Bootstrap Token
+
+- Create Secret from ssh key
+
+```shell
+kubectl create secret generic ssh-key-secret --from-file=ssh-privatekey=.ssh/id_rsa --from-file=ssh-publickey=.ssh/id_rsa.pub
+```
+
+- Create Secret from env
+
+```shell
+  # Create a new secret named my-secret from env files
+kubectl create secret generic my-secret --from-env-file=path/to/foo.env --from-env-file=path/to/bar.env
+  # Create a new secret named my-secret from env values
+kubectl create secret generic test-secret --from-literal=ENVIRONMENT=development --from-literal=PORT=8080
+```
+
+- Create Secret for TLS certificate
+
+```shell
+kubectl create secret tls tls-secret --cert=tls.cert --key=tls.key
+```

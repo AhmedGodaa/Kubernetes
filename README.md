@@ -489,6 +489,73 @@ helm upgrade k8s-app-test-chart ./helm-charts/k8s-app-test-chart --set any-attri
 
 - ---
 
+## Istio
+
+```text
+Istio is an open-source service mesh that provides a key set of functionality across the microservices in a Kubernetes cluster.
+Istio provides an easy way to create a network of deployed services with load balancing, service-to-service authentication, monitoring, and more, without requiring any changes in service code.
+Istio supports managing traffic flows between microservices, enforcing access policies, and aggregating telemetry data, all without requiring changes to the microservice code.
+```
+
+### Istio Components
+
+1. Traffic Management
+2. Security
+3. Observability
+4. Extensibility
+
+### Istio SlideCar Proxy
+
+Handles all the network traffic between microservices.\
+Service Mesh will be created by injecting Istio SlideCar Proxy into each pod.\
+Microservices can talk to each other using the Istio SlideCar Proxy.\
+The Proxy is Service Mesh
+
+### Istio Control Plane
+
+Manages the Istio proxies inside pods.
+
+### Istio CRD `Custom Resource Definition`
+
+Istio can be configured using k8s yaml files.
+Istio use Kubernetes CRD `Custom Resource Definition` to extend the k8s API.
+
+#### Types
+
+1. VirtualService
+2. DestinationRule
+
+#### VirtualService
+
+Configure the traffic rules to route the traffic to the correct service and correct version.
+
+#### DestinationRule
+
+Configure Traffic Policies for a specific service.
+What kind of Load Balancing to use.
+
+> `📝` **Note**:\
+> We don't configure the proxies manually.\
+> We configure the control-plane.\
+> Istio will inject the proxies into the pods automatically.
+
+### Istio Configure Proxies
+
+Istio have internal registry to store the configuration of the proxies.\
+When new microservice get deployed it will automatically registered to this registry.\
+Istio Automatically detect the services and endpoints of our application.\
+
+### Istio CM CA `Certificate Authority | Management`
+
+Configure the certificates for the microservices to allow secure communication.
+
+### Istio Ingress Gateway
+
+Alternative to k8s ingress controller.\
+Run as pod inside the cluster acts as load balancer.\
+Will map the traffic to the service using virtual service component.
+
+
 ## MiniKube
 
 Single Node Cluster
@@ -2491,3 +2558,5 @@ spec:
         secretName: test-secret
 
 ```
+
+

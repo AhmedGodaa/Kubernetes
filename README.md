@@ -2281,103 +2281,6 @@ metadata:
 How a pod is allowed to communicate with various network "entities" (other pods, Service endpoints, external IPs, etc).
 ```
 
-## Volumes
-
-### ConfigMap
-
-A ConfigMap provides a way to inject configuration data into pods. The data stored in a ConfigMap consumed by
-containerized applications running in a pod.
-
-- Create configmap from file
-
-```shell
-kubectl create configmap test-config --from-file=configmap/application-prop-test.yml
-```
-
-#### Consume ConfigMap Into Pod
-
-##### ConfigMap Values shapes
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: test-config-map
-data:
-  # property like key
-  port: 8080
-  environment: development
-  # file like key
-  application-prop-test.yml: |-
-    spring:
-    application:
-        name: k8s-test
-        version: v1.0.1
-```
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: configmap-demo-pod
-spec:
-  containers:
-    - name: k8s-test-container
-      image: ahmedgodaa/k8s-test:v1.0.0
-      env:
-        # Define the environment variable
-        - name: PORT
-          # from the key name in the ConfigMap.
-          valueFrom:
-            configMapKeyRef:
-              name: test-config-map   # The ConfigMap this value comes from.
-              key: port               # The key to fetch.
-
-        - name: ENVIRONMENT
-          valueFrom:
-            configMapKeyRef:
-              name: test-config-map
-              key: environment
-```
-
-> `📝` **Note**: \
-> 1. ConfigMap can be used as environment variables or as files in a volume.
-> 2. To Use File in the configmap you should use `volumeMounts` and `volumes` in the pod spec to mount the files.
-
-### Use env mounted file in the configmap
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: configmap-demo-pod
-spec:
-  containers:
-    - name: k8s-test-container
-    image: ahmedgodaa/k8s-test:v1.0.0
-    env:
-      - name: ENVIRONMENT
-      valueFrom:
-        configMapKeyRef:
-        name: test-config-map
-        key: application-prop-test.yml
-    volumeMounts:
-      - name: config-volume
-      mountPath: /config
-      readOnly: true
-  #      create a volume to store the configmap
-  volumes:
-    #    volume name
-    - name: config-volume
-      configMap:
-        name: test-config-map
-        items:
-          - key: application-prop-test.yml
-            path: /config/application-prop-test.yml
-    - name: data
-        emptyDir: { }
-```
-
 ## Secrets
 
 #### Secrets Types
@@ -2409,4 +2312,182 @@ kubectl create secret generic test-secret --from-literal=ENVIRONMENT=development
 
 ```shell
 kubectl create secret tls tls-secret --cert=tls.cert --key=tls.key
+```
+
+## ConfigMap
+
+A ConfigMap provides a way to inject configuration data into pods. The data stored in a ConfigMap consumed by
+containerized applications running in a pod.
+
+- Create configmap from file
+
+```shell
+kubectl create configmap test-config --from-file=configmap/application-prop-test.yml
+```
+
+##### ConfigMap Values shapes
+
+1. Property like key
+2. File
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-map
+data:
+  # property like key
+  port: 8080
+  environment: development
+```
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmap-demo-pod
+spec:
+  containers:
+    - name: k8s-test-container
+      image: ahmedgodaa/k8s-test:v1.0.0
+      env:
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: test-config-map
+              key: environment
+```
+
+## Secrets with ConfigMaps
+
+There is two ways to consume secrets and configmaps into the pod
+
+1. **Key Value Pairs**
+2. **Files Mounted inside the pod**
+
+> `📝` **Note**:
+> 1. ConfigMap can be used as environment variables or as files in a volume.
+> 2. To Use File in the configmap you should use `volumeMounts` and `volumes` in the pod spec to mount the files.
+
+#### Key Value Pairs
+
+Use the configmap and secret direct as environment variables into the pod
+
+- Create ConfigMap
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-map
+data:
+  port: 8080
+```
+
+- Create Secret
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-secret
+type: Opaque
+data:
+  password: admin
+```
+
+- Consume created configmap and secret into the pod.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmap-demo-pod
+spec:
+containers:
+  - name: k8s-test-container
+  image: ahmedgodaa/k8s-test:v1.0.0
+  ports:
+    - containerPort: 8080
+  env:
+    - name: PASSWORD
+      valueFrom:
+        secretKeyRef:
+        name: test-secret
+        key: password
+    - name: PORT
+    valueFrom:
+      configMapKeyRef:
+      name: test-config-map
+      key: port
+```
+
+#### Files
+
+Mount the configmap and secret as files into the pod and the Container.
+
+- Create ConfigMap with file
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-map
+data:
+  #   the name of the file and the content
+  application-prop-test.yml: |-
+    port: 8080
+    environment: development
+```
+
+- Create Secret with file
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-secret
+type: Opaque
+data:
+  secret.file: |-
+    thepasswordexampleassecret
+```
+
+- Mount into the Pod
+
+1. Specify the configmap and secret into the volume this will make it accessible inside the pod.
+2. It should be accessible inside the container also.
+3. Specify the volumeMounts in the container to mount the volume into the container.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmap-demo-pod
+spec:
+  containers:
+    - name: k8s-test-container
+    image: ahmedgodaa/k8s-test:v1.0.0
+    #  where the configmap and secret will be saved inside the container
+    volumeMounts:
+      - name: config-volume
+        mountPath: /config
+        readOnly: true
+
+      - name: secret-volume
+        mountPath: /secret
+        readOnly: true
+  #  create a volume to store the configmap
+  volumes:
+    #   volume name
+    - name: config-volume
+      #      the type of volume will be mounted - configmap
+      configMap:
+        name: test-config-map
+    #   volume name
+    - name: secret-volume
+      #      the type of volume will be mounted - secret
+      secret:
+        secretName: test-secret
+
 ```

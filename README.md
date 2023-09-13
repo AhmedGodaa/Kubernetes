@@ -489,6 +489,82 @@ helm upgrade k8s-app-test-chart ./helm-charts/k8s-app-test-chart --set any-attri
 
 - ---
 
+## ArgoCD
+
+ArgoCD is a declarative, GitOps continuous delivery tool for Kubernetes.\
+ArgoCD is the **Agent** between the desired ***Git Repository*** state and live state ****Kubernetes Deployment***.
+
+#### Workflow without ArgoCD and Problems
+
+1. Push the code and the pipeline will be triggered and the pipeline will build the image and push it to the registry.
+2. Then the pipeline will deploy the image to the k8s cluster.
+3. Jenkins or Actions should update the version the yaml file or helm to deploy the new version. ❌
+4. It should install tools in the pipeline like kubectl to communicate with the cluster. ❌
+5. It should provide the cluster credentials to the pipeline to communicate with the cluster. ❌
+6. It should provide the aws credentials to the pipeline to communicate with the cluster. ❌
+7. Once apply the new changes to cluster, it will not be possible to know the status of the execution. ❌
+
+#### Workflow with ArgoCD
+
+1. Push the code and the pipeline will be triggered and the pipeline will build the image and push it to the registry.
+2. Deploy ArgoCD to the cluster.
+3. Once the changes applied to the git repository, ArgoCD will detect the changes and will deploy the changes to the
+   cluster.
+
+> `📝` **Note**:\
+> It is best practise to have the source code and the deployment files in separate repositories.\
+> Because this files contains sensitive information like configmaps - secrets - certificates - ingress - services.
+> ArgoCD support plane yaml, helm, kustomize, etc... .
+
+#### ArgoCD Functions
+
+ArgoCD compares the current state of the cluster with the desired state of the cluster in the git repository.\
+That means The git repository files will be **single source of truth** for the cluster.\
+ArgoCD can be configured manually and this will send alert to update this into the git repository as well.
+
+#### ArgoCD benefit
+
+1. ArgoCD track the git repository.
+2. If we want to return the previous version we just need to revert the commit and ArgoCD will detect the changes and
+   will.
+3. **Deployments are versioned.**
+4. No need to manually revert or delete updates of the cluster like kubectl uninstall or kubectl delete.
+5. Overcome of disaster recovery problem.
+6. No need to create cluster roles and user resources changes comes from pull request to the branch.
+7. Cluster Credentials no need to be outside the cluster anymore.
+
+## ArgoCD Configuration
+
+### ArgoCD CRD `Custom Resource Definition`
+
+- ArgoCD use CRD to extend the k8s API.
+- CRD allow to configure k8s using native k8s yaml files.
+
+#### Example
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+   name: k8s-test
+   namespace: argocd
+spec:
+   project: default
+   source:
+      repoURL: https://github.com/ahmedgodaa/kubernetes
+      targetRevision: HEAD
+      path: k8s-test
+   destination:
+      server: https://kubernetes.default.svc
+      namespace: default
+      syncPolicy:
+         syncOptions:
+            - CreateNamespace=true
+      automated:
+         prune: true
+         selfHeal: true
+```
+
 ## Istio
 
 ```text
@@ -554,7 +630,6 @@ Configure the certificates for the microservices to allow secure communication.
 Alternative to k8s ingress controller.\
 Run as pod inside the cluster acts as load balancer.\
 Will map the traffic to the service using virtual service component.
-
 
 ## MiniKube
 

@@ -586,12 +586,18 @@ echo  "cDZLQzdZUkFITTItTnlqTQ==" | base64 -d
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode && echo
 ```
 
+- Deploy online example
+
+```shell
+kubectl apply -f argocd/crd-application-test1.yml
+```
+
 - Deploy K8s app to ArgoCD
 
 ```shell
 kubectl apply -f k8s-test/argocd/application.yml
 ```
-
+![image](https://github.com/AhmedGodaa/Kubernetes/assets/73083104/f808eba8-2448-4391-ac14-b06e137f9745)
 ## Istio
 
 ```text

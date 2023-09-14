@@ -586,6 +586,12 @@ echo  "cDZLQzdZUkFITTItTnlqTQ==" | base64 -d
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode && echo
 ```
 
+- Deploy K8s app to ArgoCD
+
+```shell
+kubectl apply -f k8s-test/argocd/application.yml
+```
+
 ## Istio
 
 ```text
@@ -2586,6 +2592,12 @@ containers:
 ```
 
 ## Deploy k8s-test App With Secrets and ConfigMaps
+
+- Decode values for the secret object
+
+```shell
+echo -n  "mongodb://localhost:27017" | base64
+```
 
 - Deploy
 

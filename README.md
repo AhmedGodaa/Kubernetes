@@ -586,9 +586,6 @@ echo  "cDZLQzdZUkFITTItTnlqTQ==" | base64 -d
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode && echo
 ```
 
-
-
-
 ## Istio
 
 ```text
@@ -2582,10 +2579,30 @@ containers:
         name: test-secret
         key: password
     - name: PORT
-       valueFrom:
-         configMapKeyRef:
-         name: test-config-map
-         key: port
+        valueFrom:
+          configMapKeyRef:
+          name: test-config-map
+          key: port
+```
+
+## Deploy k8s-test App With Secrets and ConfigMaps
+
+- Deploy
+
+```shell
+kubectl apply -f k8s-test/kubernetes/secret.yml
+kubectl apply -f k8s-test/kubernetes/configmap.yml
+kubectl apply -f k8s-test/kubernetes/deployment.yml
+kubectl apply -f k8s-test/kubernetes/service.yml
+kubectl get pods 
+kubectl exec -it k8s-test-5968499cff-fjzbx sh
+echo $MONGODB_URI
+echo $MONGODB_DATABASE
+```
+
+```text
+mongodb://localhost:27017
+test
 ```
 
 #### Files

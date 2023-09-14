@@ -6,24 +6,24 @@ metadata:
   labels:
     app: k8s-test
     env: development
-    version: v1.0.1
+    version: v1.0.2
 spec:
   selector:
     matchLabels:
       app: k8s-test
       env: development
-      version: v1.0.1
+      version: v1.0.2
   replicas: 2
   template:
     metadata:
       labels:
         app: k8s-test
         env: development
-        version: v1.0.1
+        version: v1.0.2
     spec:
       containers:
         - name: k8s-test
-          image: ahmedgodaa/k8s-test:v1.0.1
+          image: ahmedgodaa/k8s-test:v1.0.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080

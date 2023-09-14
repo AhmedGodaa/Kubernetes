@@ -5,18 +5,19 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   source:
-    repoURL: https://github.com/AhmedGodaa/Kubernetes/tree/master/argocd/argocd-yml
+    repoURL: https://gitlab.com/nanuchi/argocd-app-config.git
     targetRevision: HEAD
     path: dev
   destination:
     server: https://kubernetes.default.svc
-    namespace: development
+    namespace: myapp
+
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
+
     automated:
-      #       automatic sync to git repository
       selfHeal: true
-      #      delete all components when it is down
       prune: true

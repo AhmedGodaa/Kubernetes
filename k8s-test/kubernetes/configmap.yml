@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-map
+  namespace: development
+data:
+  MONGODB_DATABASE: test
+  MONGODB_PERSIST_NULL_FIELDS: 'true'
+  MONGODB_AUTO_INDEX_CREATION: 'true'
+  IRRIGATION_SERVICE_PORT: '8080'
+
+
+
+
+

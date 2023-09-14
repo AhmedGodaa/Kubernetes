@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-test
+  namespace: development
+  labels:
+    app: k8s-test
+    env: development
+    version: v1.0.1
+spec:
+  selector:
+    matchLabels:
+      app: k8s-test
+      env: development
+      version: v1.0.1
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: k8s-test
+        env: development
+        version: v1.0.1
+    spec:
+      containers:
+        - name: k8s-test
+          image: ahmedgodaa/k8s-test:v1.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: test-secret
+                  key: MONGODB_URI
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: test-config-map
+                  key: MONGODB_DATABASE
+            - name: MONGODB_PERSIST_NULL_FIELDS
+              valueFrom:
+                configMapKeyRef:
+                  name: test-config-map
+                  key: MONGODB_PERSIST_NULL_FIELDS
+            - name: MONGODB_AUTO_INDEX_CREATION
+              valueFrom:
+                configMapKeyRef:
+                  name: test-config-map
+                  key: MONGODB_AUTO_INDEX_CREATION
+            - name: IRRIGATION_SERVICE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: test-config-map
+                  key: IRRIGATION_SERVICE_PORT

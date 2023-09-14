@@ -2582,10 +2582,10 @@ containers:
         name: test-secret
         key: password
     - name: PORT
-    valueFrom:
-      configMapKeyRef:
-      name: test-config-map
-      key: port
+       valueFrom:
+         configMapKeyRef:
+         name: test-config-map
+         key: port
 ```
 
 #### Files
@@ -2657,5 +2657,4 @@ spec:
         secretName: test-secret
 
 ```
-
 

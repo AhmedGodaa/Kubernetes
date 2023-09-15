@@ -546,23 +546,47 @@ ArgoCD can be configured manually and this will send alert to update this into t
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: k8s-test
+  #    object name
+  name: myapp-argo-application
+  #  the application object will be created at the same namespace where argocd is running
   namespace: argocd
 spec:
+  #    Projects provide a logical grouping of applications, which is useful when Argo CD is used by multiple teams. 
+  #    project is used when we have multiple applications and each belongs to different projects
+  #    `default` project, which is created automatically and by default, permits deployments from any source repo, to any cluster,
+  #    and all resource Kinds. The default project can be modified, but not deleted.
   project: default
   source:
-    repoURL: https://github.com/ahmedgodaa/kubernetes
+    #    the git repository 
+    repoURL: https://github.com/AhmedGodaa/Kubernetes.git
+    #    trigger the last commit in the git repo 
     targetRevision: HEAD
-    path: k8s-test
+    #    where the yaml will be applied is located
+    path: k8s-test/kubernetes
+    #    where the application will located
   destination:
+    #   the default service at the default namespace of the cluster
+    #   kubectl get services --namespace default 
+    #   because argocd is running inside the cluster we can access the services directly 
+    #   argocd can connected to cluster externally and syncronize the difinition to multiple clusters at once 
     server: https://kubernetes.default.svc
-    namespace: default
-    syncPolicy:
-      syncOptions:
-        - CreateNamespace=true
+      #   where argocd should apply the yaml difinitions 
+      namespace: development
+
+  syncPolicy:
+    #   if the namespace is not exist create one 
+    syncOptions:
+      - CreateNamespace=true
+    #     automaticcally trigger changes at git repo and apply them
     automated:
-      prune: true
+      #     undo and override any manual changes to the cluster  
       selfHeal: true
+      #   By default (and as a safety mechanism), automated sync will not delete resources 
+      # when Argo CD detects the resource is no longer defined in Git. To prune the resources,
+      # a manual sync can always be performed (with pruning checked). Pruning can also be enabled 
+      # to happen automatically as part of the automated sync by running:
+      prune: true
+
 ```
 
 ## Installation
@@ -597,7 +621,9 @@ kubectl apply -f argocd/crd-application-test1.yml
 ```shell
 kubectl apply -f k8s-test/argocd/application.yml
 ```
-![image](https://github.com/AhmedGodaa/Kubernetes/assets/73083104/f808eba8-2448-4391-ac14-b06e137f9745)
+
+![image](https://github.com/AhmedGodaa/Kubernetes/assets/73083104/9c7bbd75-7cdf-4657-86c5-66b2c28168c1)
+
 ## Istio
 
 ```text

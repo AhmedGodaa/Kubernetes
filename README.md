@@ -52,41 +52,6 @@ To connect to your database:
 
 ```
 
-- Get the mysql release secret as json
-
-```shell
-kubectl get secret --namespace default my-sql-mysql -o json
-```
-
-```json
-{
-  "apiVersion": "v1",
-  "data": {
-    "mysql-password": "MWFVRkk3UTFPdw==",
-    "mysql-root-password": "V0VIb3l4Vjc5WQ=="
-  },
-  "kind": "Secret",
-  "metadata": {
-    "annotations": {
-      "meta.helm.sh/release-name": "my-sql",
-      "meta.helm.sh/release-namespace": "default"
-    },
-    "creationTimestamp": "2023-08-31T15:15:09Z",
-    "labels": {
-      "app.kubernetes.io/instance": "my-sql",
-      "app.kubernetes.io/managed-by": "Helm",
-      "app.kubernetes.io/name": "mysql",
-      "helm.sh/chart": "mysql-9.12.1"
-    },
-    "name": "my-sql-mysql",
-    "namespace": "default",
-    "resourceVersion": "109476",
-    "uid": "cba38e54-c79f-40d4-b61e-ead7afc27bd0"
-  },
-  "type": "Opaque"
-}
-```
-
 - Get the mysql release secret as yaml
 
 ```shell
@@ -314,7 +279,7 @@ helm template prometheus ./helm-charts/kube-prometheus-stack > generated-helm-ch
 kubectl create -f generated-helm-charts-yml/prometheus-generated.yml
 ```
 
-- Create Own chart.
+### Create Own chart.
 
 > `📝` Note:
 >
@@ -2808,4 +2773,79 @@ and performance.
 Prometheus server, define alerting rules and configure various notification channels like email, Slack,
 or webhook notifications.
 
+### Install Prometheus
 
+- Install prometheus using helm
+
+> `📝` **Note**: this part is duplicated in the helm section
+
+#### Direct From Artifactory
+
+```shell
+2. Install prometheus using helm
+
+
+```shell
+# Add prometheus helm repo
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# Validate repo added 
+helm repo  list
+# Update helm repo
+helm repo update
+#Install Helm Chart
+helm install prometheus prometheus-community/kube-prometheus-stack
+```
+
+#### Pull From Artifactory
+
+- Pull chart and generate yaml files
+
+```shell
+cd helm-charts
+helm pull prometheus-community/kube-prometheus-stack --untar 
+cd ../
+helm template prometheus ./helm-charts/kube-prometheus-stack > generated-helm-charts-yml/prometheus-generated.yml
+kubectl apply -f generated-helm-charts-yml/prometheus-generated.yml
+```
+
+- Validate all pods are running
+
+```shell
+kubectl --namespace default get pods -l "release=prometheus"
+```
+
+- Validate prometheus service so to access prometheus
+
+```shell
+kubectl get services
+```
+
+- Will access the prometheus using the `prometheus-grafana` service
+
+```shell
+kubectl port-forward --namespace default service/prometheus-grafana 3000:80
+```
+
+- Access prometheus using the browser
+
+```shell
+http://localhost:3000
+```
+
+- we can use this command with linux to get the password
+
+```shell
+helm show values prometheus-community/kube-prometheus-stack | grep adminPassword
+```
+
+- Override the values
+
+```shell
+helm upgrade prometheus prometheus-community/kube-prometheus-stack --values helm-chart-values/prometheus-values.yml
+```
+
+- Override the values - admin password using cmd
+
+```shell
+helm upgrade prometheus prometheus-community/kube-prometheus-stack --set grafana.adminPassword=test.Password123
+```

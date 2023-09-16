@@ -2,5 +2,6 @@
 k8s.iml
 helm-charts/kube-prometheus-stack
 helm-charts/ingress-nginx
+helm-charts/prometheus-mongodb-exporter
 .k8s.iml.swp
 .README.md.swp

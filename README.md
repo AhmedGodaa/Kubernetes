@@ -2849,3 +2849,44 @@ helm upgrade prometheus prometheus-community/kube-prometheus-stack --values helm
 ```shell
 helm upgrade prometheus prometheus-community/kube-prometheus-stack --set grafana.adminPassword=test.Password123
 ```
+
+### Service Monitor
+
+Custom Component
+
+```shell
+kubectl get servicemonitor
+kubectl get servicemonitor prometheus-kube-prometheus-alertmanager  -o yaml
+```
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+```
+
+> `📝` **Note**:\
+> the service monitor should contain the label `release=prometheus`.\
+> so prometheus can discover it in the cluster.
+
+#### Example Application MongoDB
+
+```
+kubectl apply -f https://gitlab.com/nanuchi/youtube-tutorial-series/-/raw/master/prometheus-exporter/mongodb.yaml
+```
+
+> `📝` **Note**:\
+> That is not the most right approach it should come from helm chart.
+> 1. [Prometheus Community Repository](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-mongodb-exporter)
+> 2. [Prometheus Helm Artifactory](https://artifacthub.io/packages/helm/prometheus-community/prometheus-mongodb-exporter)
+
+- Install exporter using helm
+
+```shell
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm pull prometheus-community/prometheus-mongodb-exporter --untar -d helm-charts
+helm template prometheus-mongodb-exporter ./helm-charts/prometheus-mongodb-exporter > generated-helm-charts-yml/prometheus-mongodb-exporter-generated.yml
+helm show values helm-charts/prometheus-mongodb-exporter > helm-chart-values/prometheus-mongodb-exporter-values.yml
+# OR 
+helm install prometheus-mongodb-exporter prometheus-community/prometheus-mongodb-exporter
+```

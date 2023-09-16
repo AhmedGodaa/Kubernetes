@@ -2881,12 +2881,70 @@ kubectl apply -f https://gitlab.com/nanuchi/youtube-tutorial-series/-/raw/master
 
 - Install exporter using helm
 
+#### Direct From Artifactory
+
+**Not Recommended**
+
+```shell
+helm install prometheus-mongodb-exporter prometheus-community/prometheus-mongodb-exporter
+```
+
+#### Pull From Artifactory
+
 ```shell
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm pull prometheus-community/prometheus-mongodb-exporter --untar -d helm-charts
 helm template prometheus-mongodb-exporter ./helm-charts/prometheus-mongodb-exporter > generated-helm-charts-yml/prometheus-mongodb-exporter-generated.yml
 helm show values helm-charts/prometheus-mongodb-exporter > helm-chart-values/prometheus-mongodb-exporter-values.yml
-# OR 
-helm install prometheus-mongodb-exporter prometheus-community/prometheus-mongodb-exporter
 ```
+
+- **Override the service monitor values**
+
+1. need to map the exporter to mongodb service by adding the service url to the values file under mongodb.uri="""
+2. need to add the label `release=prometheus` to be discovered by prometheus
+
+#### Add MongoDB Service To Exporter
+
+- Get the service name and the port
+
+```shell
+kubectl get svc
+```
+
+#### Add The Service Monitor Label
+
+- Override file
+
+```yaml
+mongodb:
+  uri: "mongodb://mongodb-service:27017"
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    release: prometheus
+```
+
+- Install the chart with override yaml
+
+```shell
+helm install prometheus-mongodb-exporter helm-charts/prometheus-mongodb-exporter -f
+helm-chart-values/prometheus-override-mongodb-exporter-values.yml
+```
+
+- Validate Installation
+
+```shell
+kubectl port-forward service/prometheus-mongodb-exporter 9216
+curl http://127.0.0.1:9216/metrics
+```
+
+```text
+# example response
+go_gc_duration_seconds{quantile="0"} 0
+go_gc_duration_seconds{quantile="0.25"} 0
+go_gc_duration_seconds{quantile="0.5"} 0
+go_gc_duration_seconds{quantile="0.75"} 0
+go_gc_duration_seconds{quantile="1"} 0
+```
+

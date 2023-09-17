@@ -92,16 +92,12 @@ kubectl get secret --namespace default my-sql-mysql -o jsonpath="{.data.mysql-ro
 1. Create kind cluster because it didn't work on minikube
 
 ```shell
-kind creawte cluster --name helm-test-cluster
+kind create cluster --name helm-test-cluster
 # change the context to the new cluster
 kubectl config use-context helm-test-cluster
 ```
 
 - Install prometheus using helm
-
-```shell
-2. Install prometheus using helm
-
 
 ```shell
 # Add prometheus helm repo
@@ -2928,8 +2924,7 @@ serviceMonitor:
 - Install the chart with override yaml
 
 ```shell
-helm install prometheus-mongodb-exporter helm-charts/prometheus-mongodb-exporter -f
-helm-chart-values/prometheus-override-mongodb-exporter-values.yml
+helm install prometheus-mongodb-exporter helm-charts/prometheus-mongodb-exporter -f helm-chart-values/prometheus-override-mongodb-exporter-values.yml
 ```
 
 - Validate Installation
@@ -2948,3 +2943,78 @@ go_gc_duration_seconds{quantile="0.75"} 0
 go_gc_duration_seconds{quantile="1"} 0
 ```
 
+## Prometheus with spring
+
+### Installation
+- Install Prometheus and Grafana using helm
+
+```shell
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm pull prometheus-community/kube-prometheus-stack --untar -d helm-charts
+helm template prometheus ./helm-charts/kube-prometheus-stack > generated-helm-charts-yml/prometheus-generated.yml
+helm show values prometheus-community/kube-prometheus-stack > helm-chart-values/prometheus-override-values.yml
+```
+
+- Install Loki Helm chart
+
+```shell
+helm repo add grafana https://grafana.github.io/helm-charts
+helm pull grafana/loki --untar -d helm-charts
+helm template loki ./helm-charts/loki > generated-helm-charts-yml/loki-generated.yml
+helm show values grafana/loki > helm-chart-values/loki-values.yml
+helm install loki helm-charts/loki -f helm-chart-values/loki-override-values.yml
+```
+
+- Install Tempo Helm chart
+
+```shell
+helm repo add grafana https://grafana.github.io/helm-charts
+helm pull grafana/tempo --untar -d helm-charts
+helm template tempo ./helm-charts/tempo > generated-helm-charts-yml/tempo-generated.yml
+helm show values grafana/tempo > helm-chart-values/tempo-values.yml
+helm install tempo helm-charts/tempo -f helm-chart-values/tempo-override-values.yml
+```
+
+#### Implement Logging using Loki
+
+- Add Required Dependencies
+
+```kotlin
+// Adds Spring Boot Actuator, which provides production-ready features to help monitor and manage your application.
+implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+// Integrates Micrometer with Prometheus, allowing you to collect application metrics and expose them in a format that Prometheus can scrape.
+implementation("io.micrometer:micrometer-registry-prometheus")
+
+// Provides a bridge between Micrometer and Brave, enabling tracing and instrumentation of your application using distributed tracing.
+implementation("io.micrometer:micrometer-tracing-bridge-brave")
+
+// Integrates Brave with Zipkin, allowing you to report tracing data to a Zipkin server for distributed tracing and analysis.
+implementation("io.zipkin.reporter2:zipkin-reporter-brave")
+
+// Adds support for monitoring and collecting metrics related to database calls using Micrometer. Helpful for understanding database performance.
+implementation("net.ttddyy.observation:datasource-micrometer-spring-boot:1.0.1")
+
+// Adds support for Aspect-Oriented Programming (AOP) in Spring Boot, which can be used for intercepting method calls and applying cross-cutting concerns.
+implementation("org.springframework.boot:spring-boot-starter-aop")
+
+// Integrates Logback with Loki, a log aggregation system. This allows you to send log entries to Loki for storage and analysis.
+implementation("com.github.loki4j:loki-logback-appender:1.4.1")
+```
+
+- Add Actuator Configurations
+
+```text
+# Exposes selected Spring Boot Actuator endpoints over the web.
+management.endpoints.web.exposure.include=${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE}
+
+# Configures collection of percentiles for HTTP server requests metrics.
+management.metrics.distribution.percentiles-histogram.http.server.requests=${MANAGEMENT_METRICS_REQUESTS}
+
+# Sets key-value pairs for observations, often used for application identification.
+management.observations.key-values.application=${IRRIGATION_SERVICE_NAME}
+
+# Controls the probability of tracing requests for distributed tracing (0.0 - 1.0).
+management.tracing.sampling.probability=${TRACING_PROBABILITY}
+```

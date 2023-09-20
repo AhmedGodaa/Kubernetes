@@ -7,3 +7,6 @@ helm-charts/tempo
 helm-charts/prometheus-mongodb-exporter
 .k8s.iml.swp
 .README.md.swp
+kafka_2.13-3.5.0.tgz
+kafka_2.13-3.5.0
+kafka

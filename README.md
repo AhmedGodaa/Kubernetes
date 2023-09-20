@@ -205,7 +205,7 @@ kubectl upgrade prometheus prometheus-community/kube-prometheus-stack --set graf
 - Use override separate value file
 
 ```shell
-helm upgrade prometheus prometheus-community/kube-prometheus-stack --values helm-chart-values/prometheus-override-values-test1.yml
+helm upgrade prometheus prometheus-community/kube-prometheus-stack --values helm-chart-values/prometheus-override-values.yml
 ```
 
 ### Avoid SnowFlack Server
@@ -2910,7 +2910,7 @@ kubectl get svc
 
 #### Add The Service Monitor Label
 
-- Override file
+- Override values file
 
 ```yaml
 mongodb:
@@ -2946,6 +2946,7 @@ go_gc_duration_seconds{quantile="1"} 0
 ## Prometheus with spring
 
 ### Installation
+
 - Install Prometheus and Grafana using helm
 
 ```shell
@@ -2954,6 +2955,7 @@ helm repo update
 helm pull prometheus-community/kube-prometheus-stack --untar -d helm-charts
 helm template prometheus ./helm-charts/kube-prometheus-stack > generated-helm-charts-yml/prometheus-generated.yml
 helm show values prometheus-community/kube-prometheus-stack > helm-chart-values/prometheus-override-values.yml
+helm install prometheus helm-charts/kube-prometheus-stack -f helm-chart-values/prometheus-override-values.yml
 ```
 
 - Install Loki Helm chart
@@ -3005,16 +3007,107 @@ implementation("com.github.loki4j:loki-logback-appender:1.4.1")
 
 - Add Actuator Configurations
 
-```text
-# Exposes selected Spring Boot Actuator endpoints over the web.
-management.endpoints.web.exposure.include=${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE}
+```kotlin
+# Exposes selected Spring Boot Actuator endpoints over the web.management.endpoints.web.exposure.include =
+${ MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE }
 
-# Configures collection of percentiles for HTTP server requests metrics.
-management.metrics.distribution.percentiles-histogram.http.server.requests=${MANAGEMENT_METRICS_REQUESTS}
+# Configures collection of percentiles for HTTP server requests metrics .
+management.metrics.distribution.percentiles - histogram.http.server.requests = ${ MANAGEMENT_METRICS_REQUESTS }
 
-# Sets key-value pairs for observations, often used for application identification.
-management.observations.key-values.application=${IRRIGATION_SERVICE_NAME}
+# Sets key -value pairs for observations, often used for application identification .
+management.observations.key - values.application = ${ IRRIGATION_SERVICE_NAME }
 
-# Controls the probability of tracing requests for distributed tracing (0.0 - 1.0).
-management.tracing.sampling.probability=${TRACING_PROBABILITY}
+# Controls the probability of tracing requests for distributed tracing (0.0 - 1.0).management.tracing.sampling.probability =
+${ TRACING_PROBABILITY }
 ```
+
+...
+
+## Kafka
+
+### Kafka Main Concepts
+
+#### Topic
+
+A topic is a logical channel for organizing and categorizing messages,
+
+#### Producers
+
+Write messages to topics, and consumers read messages from topics
+
+#### Consumer
+
+Consumers are applications or processes that subscribe to Kafka topics and retrieve records from them.
+
+#### Partition
+
+Each topic can be divided into multiple partitions.
+
+#### Broker
+
+Brokers are individual Kafka server instances that store and manage topic data.
+
+#### Consumer Group
+
+Set of consumers that work together to consume data from one or more topics. Kafka ensures that each
+partition of a topic is consumed by only one consumer within a group. This allows to scale consumption horizontally by
+adding more consumers to a group.
+
+### Kafka Apis
+
+- The Admin API to manage and inspect topics, brokers, and other Kafka objects.
+- The Producer API to publish (write) a stream of events to one or more Kafka topics.
+- The Consumer API to subscribe to (read) one or more topics and to process the stream of events produced to them.
+- The Kafka Streams API to implement stream processing applications and microservices.
+
+### Installation
+
+```shell
+curl https://downloads.apache.org/kafka/3.5.1/kafka_2.12-3.5.1.tgz
+tar -xzf kafka_2.13-3.5.0.tgz
+mv kafka_2.13-3.5.0 kafka
+cd kafka
+```
+
+- define logs file
+
+Change data directory to `dataDir=c:/kafka/zookeeper-data` at `kafka/config/zookeeper.properties`
+Change the data directory to `log.dirs=c:/kafka/logs` at `kafka/config/server.properties`
+
+- Start Zookeeper `Windows`
+
+```shell
+# Start Zookeeper
+./bin/windows/zookeeper-server-start.bat config/zookeeper.properties
+# Start Kfka Server
+./bin/windows/kafka-server-start.bat config/server.properties
+```
+
+- Create Topic
+
+```shell
+./bin/windows/kafka-topics.bat --create --topic quickstart-events --bootstrap-server localhost:9092
+```
+
+- Write data into topic
+
+```shell
+./bin/windows/kafka-console-producer.bat --topic quickstart-events --bootstrap-server localhost:9092
+>Test Message!
+>Test Message2!
+```
+
+- Consume messages - messages recived at the same time 
+
+```shell
+./bin/windows/kafka-console-consumer.bat --topic quickstart-events --from-beginning --bootstrap-server localhost:9092
+Test Message!
+Test Message2!
+```
+
+
+
+
+
+
+

@@ -3027,29 +3027,17 @@ ${ TRACING_PROBABILITY }
 
 ### Kafka Main Concepts
 
-#### Topic
+**Topic** : A topic is a logical channel for organizing and categorizing messages,
 
-A topic is a logical channel for organizing and categorizing messages,
+**Producers**: Write messages to topics, and consumers read messages from topics
 
-#### Producers
+**Consumer**: Consumers are applications or processes that subscribe to Kafka topics and retrieve records from them.
 
-Write messages to topics, and consumers read messages from topics
+**Partition**: Each topic can be divided into multiple partitions.
 
-#### Consumer
+**Broker**: Brokers are individual Kafka server instances that store and manage topic data.
 
-Consumers are applications or processes that subscribe to Kafka topics and retrieve records from them.
-
-#### Partition
-
-Each topic can be divided into multiple partitions.
-
-#### Broker
-
-Brokers are individual Kafka server instances that store and manage topic data.
-
-#### Consumer Group
-
-Set of consumers that work together to consume data from one or more topics. Kafka ensures that each
+**Consumer Group**: Set of consumers that work together to consume data from one or more topics. Kafka ensures that each
 partition of a topic is consumed by only one consumer within a group. This allows to scale consumption horizontally by
 adding more consumers to a group.
 
@@ -3087,9 +3075,32 @@ Change the data directory to `log.dirs=c:/kafka/logs` at `kafka/config/server.pr
 
 ```shell
 ./bin/windows/kafka-topics.bat --create --topic quickstart-events --bootstrap-server localhost:9092
+# create topic with 3 partitions
+./bin/windows/kafka-topics.bat --create --topic topic-multi-pr --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
 ```
 
-- Write data into topic
+- List topics
+
+```shell
+./bin/windows/kafka-topics.bat --list --bootstrap-server localhost:9092
+```
+kafka-topics.sh --list --bootstrap-server my-release-kafka-controller-headless.default.svc.cluster.local:9092
+kafka-topics.sh --create --topic quickstart-events --bootstrap-server my-release-kafka-controller-headless.default.svc.cluster.local:9092
+
+- Describe topic
+
+```shell
+./bin/windows/kafka-topics.bat --describe --topic topic-multi-pr --bootstrap-server localhost:9092
+```
+
+```text
+Topic: topic-multi-pr   TopicId: MSzkjr0wTrO2jL61NxLAjg PartitionCount: 3       ReplicationFactor: 1    Configs:
+        Topic: topic-multi-pr   Partition: 0    Leader: 0       Replicas: 0     Isr: 0
+        Topic: topic-multi-pr   Partition: 1    Leader: 0       Replicas: 0     Isr: 0
+        Topic: topic-multi-pr   Partition: 2    Leader: 0       Replicas: 0     Isr: 0
+```
+
+- Produce message inside topic
 
 ```shell
 ./bin/windows/kafka-console-producer.bat --topic quickstart-events --bootstrap-server localhost:9092
@@ -3097,7 +3108,7 @@ Change the data directory to `log.dirs=c:/kafka/logs` at `kafka/config/server.pr
 >Test Message2!
 ```
 
-- Consume messages - messages recived at the same time 
+- Consume messages - messages received at the same time
 
 ```shell
 ./bin/windows/kafka-console-consumer.bat --topic quickstart-events --from-beginning --bootstrap-server localhost:9092
